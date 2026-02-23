@@ -111,6 +111,7 @@ function initDB() {
       \`cargo\`     TEXT,
       \`grado\`     TEXT,
       \`tipo\`      TEXT,
+      \`esNuevo\`   TEXT DEFAULT 'Nuevo',
       \`inicio\`    TEXT,
       \`termino\`   TEXT,
       \`monto\`     TEXT,

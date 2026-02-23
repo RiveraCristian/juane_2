@@ -181,9 +181,10 @@ app.post('/api/contrataciones', (req, res) => {
     return res.status(400).json({ error: 'Campos obligatorios faltantes' });
   }
   const r = db.prepare(`INSERT INTO contrataciones
-    (seremiId, nombre, rut, cargo, grado, tipo, inicio, termino, monto, financ, just, estado, vbQuien, vbFecha, creadoPor, creadoEn)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+    (seremiId, nombre, rut, cargo, grado, tipo, esNuevo, inicio, termino, monto, financ, just, estado, vbQuien, vbFecha, creadoPor, creadoEn)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
     .run(b.seremiId, b.nombre, b.rut, b.cargo, b.grado || '', b.tipo || 'Honorarios',
+      b.esNuevo || 'Nuevo',
       b.inicio, b.termino, b.monto, b.financ || '', b.just,
       'Pendiente', '', '', b.creadoPor || '', b.creadoEn || new Date().toISOString().slice(0, 10));
   res.json({ id: r.lastInsertRowid });
