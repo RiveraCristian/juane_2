@@ -637,7 +637,7 @@ tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
   <div class="tab-nav" id="seremiTabs" style="display:none">
     <div class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</div>
     <div class="tab-btn" onclick="switchTab('miseremi',this)">📋 Mi SEREMI</div>
-    <div class="tab-btn" onclick="switchTab('contrataciones',this)">📋 Contrataciones <span id="vbBadgeSeremi" style="display:none;background:var(--accent);color:#0b0f1a;border-radius:10px;padding:1px 7px;font-size:9px;font-weight:700;margin-left:3px">0</span></div>
+    <div class="tab-btn" onclick="switchTab('contrataciones',this)">📋 Mis Contrataciones <span id="vbBadgeSeremi" style="display:none;background:var(--accent);color:#0b0f1a;border-radius:10px;padding:1px 7px;font-size:9px;font-weight:700;margin-left:3px">0</span></div>
   </div>
 
   <!-- TAB: DASHBOARD -->
@@ -1402,6 +1402,10 @@ function setupForUser(){
   activeFilter='all';
   document.querySelectorAll('#filterGroup .f-chip').forEach(c=>c.classList.remove('active'));
   document.querySelector('#filterGroup .f-chip[data-filter="all"]')?.classList.add('active');
+  // Reset tabs to dashboard
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-dashboard').classList.add('active');
   // Header
   document.getElementById('userAvatar').textContent=u.nombre.charAt(0).toUpperCase();
   if(u.rol==='admin') document.getElementById('userAvatar').classList.add('admin');
@@ -1410,6 +1414,8 @@ function setupForUser(){
 
   if(u.rol==='admin'){
     document.getElementById('adminTabs').style.display='flex';
+    document.getElementById('seremiTabs').style.display='none';
+    document.querySelector('#adminTabs .tab-btn').classList.add('active');
     document.getElementById('exportBar').style.display='flex';
     document.getElementById('filterBar').style.display='flex';
     document.getElementById('periodBar').style.display='flex';
@@ -1429,6 +1435,7 @@ function setupForUser(){
   } else {
     document.getElementById('adminTabs').style.display='none';
     document.getElementById('seremiTabs').style.display='flex';
+    document.querySelector('#seremiTabs .tab-btn').classList.add('active');
     document.getElementById('exportBar').style.display='none';
     document.getElementById('filterBar').style.display='none';
     document.getElementById('periodBar').style.display='flex';

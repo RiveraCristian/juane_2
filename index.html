@@ -633,6 +633,13 @@ tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
     <div class="tab-btn" onclick="switchTab('usuarios',this)">👥 Usuarios y SEREMIs</div>
   </div>
 
+  <!-- SEREMI tab nav -->
+  <div class="tab-nav" id="seremiTabs" style="display:none">
+    <div class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</div>
+    <div class="tab-btn" onclick="switchTab('miseremi',this)">📋 Mi SEREMI</div>
+    <div class="tab-btn" onclick="switchTab('contrataciones',this)">📋 Mis Contrataciones <span id="vbBadgeSeremi" style="display:none;background:var(--accent);color:#0b0f1a;border-radius:10px;padding:1px 7px;font-size:9px;font-weight:700;margin-left:3px">0</span></div>
+  </div>
+
   <!-- TAB: DASHBOARD -->
   <div class="tab-content active" id="tab-dashboard">
     <div class="container">
@@ -765,6 +772,83 @@ tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
     </div>
   </div>
 
+
+  <!-- TAB: MI SEREMI (solo vista seremi) -->
+  <div class="tab-content" id="tab-miseremi">
+    <div class="container">
+      <!-- Banner -->
+      <div class="seremi-banner" id="miSeremiBanner" style="border-left:4px solid var(--accent2)">
+        <div class="seremi-banner-info">
+          <div class="seremi-avatar-lg" id="miSeremiAvatar" style="background:var(--accent2)">S</div>
+          <div>
+            <div class="seremi-banner-name" id="miSeremiName">—</div>
+            <div class="seremi-banner-meta" id="miSeremiMeta">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visitas -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>🗺️</span> Visitas a Comunas <span class="table-count" id="msVisitasCount">0</span></div>
+          <button class="btn btn-primary" onclick="openNewRecord(null)" style="font-size:11px">+ Agregar Visita</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Fecha</th><th>Comuna</th><th>Lugar</th><th>Personas</th><th>Descripción</th><th>Acción</th></tr></thead>
+        <tbody id="msVisitasBody"></tbody></table>
+      </div>
+
+      <!-- Proyectos -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>📌</span> Proyectos <span class="table-count" id="msProyCount">0</span></div>
+          <button class="btn btn-primary" onclick="msAddRecord('proyecto')" style="font-size:11px">+ Agregar Proyecto</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Proyecto</th><th>Meta</th><th>Estado</th><th>Acción</th></tr></thead>
+        <tbody id="msProyBody"></tbody></table>
+      </div>
+
+      <!-- Nudos -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>⚠️</span> Nudos Críticos <span class="table-count" id="msNudosCount">0</span></div>
+          <button class="btn btn-primary" onclick="msAddRecord('nudo')" style="font-size:11px">+ Agregar Nudo</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Título</th><th>Descripción</th><th>Urgencia</th><th>Acción</th></tr></thead>
+        <tbody id="msNudosBody"></tbody></table>
+      </div>
+
+      <!-- Temas -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>💡</span> Temas Propuestos <span class="table-count" id="msTemasCount">0</span></div>
+          <button class="btn btn-primary" onclick="msAddRecord('tema')" style="font-size:11px">+ Agregar Tema</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Tema</th><th>Prioridad</th><th>Acción</th></tr></thead>
+        <tbody id="msTemasBody"></tbody></table>
+      </div>
+
+      <!-- Agenda -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>📅</span> Agenda de Hitos <span class="table-count" id="msAgendaCount">0</span></div>
+          <button class="btn btn-primary" onclick="msAddRecord('agenda')" style="font-size:11px">+ Agregar Hito</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Acción</th></tr></thead>
+        <tbody id="msAgendaBody"></tbody></table>
+      </div>
+
+      <!-- Prensa -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>📰</span> Apariciones en Prensa <span class="table-count" id="msPrensaCount">0</span></div>
+          <button class="btn btn-primary" onclick="msAddRecord('prensa')" style="font-size:11px">+ Agregar Prensa</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Titular</th><th>Medio</th><th>Fecha</th><th>Tono</th><th>Acción</th></tr></thead>
+        <tbody id="msPrensaBody"></tbody></table>
+      </div>
+
+    </div>
+  </div>
 
   <!-- TAB: CONTRATACIONES -->
   <div class="tab-content" id="tab-contrataciones">
@@ -1318,6 +1402,10 @@ function setupForUser(){
   activeFilter='all';
   document.querySelectorAll('#filterGroup .f-chip').forEach(c=>c.classList.remove('active'));
   document.querySelector('#filterGroup .f-chip[data-filter="all"]')?.classList.add('active');
+  // Reset tabs to dashboard
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-dashboard').classList.add('active');
   // Header
   document.getElementById('userAvatar').textContent=u.nombre.charAt(0).toUpperCase();
   if(u.rol==='admin') document.getElementById('userAvatar').classList.add('admin');
@@ -1326,6 +1414,8 @@ function setupForUser(){
 
   if(u.rol==='admin'){
     document.getElementById('adminTabs').style.display='flex';
+    document.getElementById('seremiTabs').style.display='none';
+    document.querySelector('#adminTabs .tab-btn').classList.add('active');
     document.getElementById('exportBar').style.display='flex';
     document.getElementById('filterBar').style.display='flex';
     document.getElementById('periodBar').style.display='flex';
@@ -1344,6 +1434,8 @@ function setupForUser(){
     cUpdateBadge();
   } else {
     document.getElementById('adminTabs').style.display='none';
+    document.getElementById('seremiTabs').style.display='flex';
+    document.querySelector('#seremiTabs .tab-btn').classList.add('active');
     document.getElementById('exportBar').style.display='none';
     document.getElementById('filterBar').style.display='none';
     document.getElementById('periodBar').style.display='flex';
@@ -1357,6 +1449,7 @@ function setupForUser(){
       document.getElementById('seremiBannerMeta').textContent=`Responsable: ${u.cargo} ${u.nombre} · ${u.email}`;
       applyPeriodFilter();
     }
+    cUpdateBadge();
   }
 }
 
@@ -1850,6 +1943,9 @@ function cUpdateBadge(){
   const pend=contrats.filter(c=>c.estado==='Pendiente').length;
   const b=document.getElementById('vbBadge');
   if(b){b.style.display=pend>0?'inline':'none';b.textContent=pend;}
+  const pendSeremi=currentUser?.seremiId?contrats.filter(c=>c.estado==='Pendiente'&&c.seremiId===currentUser.seremiId).length:0;
+  const bs=document.getElementById('vbBadgeSeremi');
+  if(bs){bs.style.display=pendSeremi>0?'inline':'none';bs.textContent=pendSeremi;}
 }
 
 function cRenderTable(){
