@@ -2118,7 +2118,7 @@ function outsideClose(e,id){if(e.target===document.getElementById(id))closeModal
 function exportContratExcel(){
   let data=[...contrats];
   if(currentUser?.rol==='seremi')data=data.filter(c=>c.seremiId===currentUser.seremiId);
-  const rows=data.map(c=>({'#':c.id,'Nombre':c.nombre,'RUT':c.rut,'Cargo':c.cargo,'Grado':c.grado||'','Tipo':c.tipo,'Tipo plaza':c.esNuevo==='Nuevo'?'Plaza nueva':'Cambio de plaza','SEREMI':cSeremiNombre(c.seremiId),'Fecha inicio':c.inicio,'Fecha término':c.termino,'Monto mensual':cFmtMonto(c.monto),'Financiamiento':c.financ,'Justificación':c.just,'Estado':c.estado,'VB por':c.vbQuien||'—','Fecha VB':c.vbFecha?cFmtFecha(c.vbFecha):'—','Solicitado por':c.creadoPor,'Fecha solicitud':cFmtFecha(c.creadoEn)}));
+  const rows=data.map(c=>({'#':c.id,'Nombre':c.nombre,'RUT':c.rut,'Cargo':c.cargo,'Grado':c.grado||'','Tipo':c.tipo,'Tipo plaza':c.esNuevo==='Nuevo'?'Plaza nueva':'Cambio de plaza actual','SEREMI':cSeremiNombre(c.seremiId),'Fecha inicio':c.inicio,'Fecha término':c.termino,'Monto mensual':cFmtMonto(c.monto),'Financiamiento':c.financ,'Justificación':c.just,'Estado':c.estado,'VB por':c.vbQuien||'—','Fecha VB':c.vbFecha?cFmtFecha(c.vbFecha):'—','Solicitado por':c.creadoPor,'Fecha solicitud':cFmtFecha(c.creadoEn)}));
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.json_to_sheet(rows);
   ws['!cols']=[{wch:4},{wch:28},{wch:14},{wch:28},{wch:10},{wch:14},{wch:18},{wch:22},{wch:13},{wch:13},{wch:15},{wch:18},{wch:50},{wch:12},{wch:24},{wch:14},{wch:22},{wch:14}];
