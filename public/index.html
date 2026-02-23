@@ -886,6 +886,10 @@ tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
           <div class="stat-icon" style="background:rgba(46,196,165,.15)">💰</div>
           <div><div class="stat-val" id="cStatSuma" style="color:var(--accent3)">$0</div><div class="stat-label">Suma pesos mensuales</div></div>
         </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(58,123,213,.15)">🆕</div>
+          <div><div class="stat-val" id="cStatSumaNuevos" style="color:var(--accent2)">$0</div><div class="stat-label">Suma plazas nuevas</div></div>
+        </div>
       </div>
 
       <!-- Filtros + búsqueda -->
@@ -967,6 +971,13 @@ tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
         <div class="form-group"><label class="form-label">Grado / Nivel</label><input type="text" class="form-input" id="cFGrado" placeholder="Ej: Grado 10, Nivel 3..."></div>
       </div>
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">📄 Datos del contrato</div>
+      <div style="margin-bottom:12px">
+        <div class="form-group"><label class="form-label">¿Es plaza nueva o cambio de plaza actual? *</label>
+          <select class="form-select" id="cFEsNuevo">
+            <option value="Nuevo">Plaza nueva</option><option value="Cambio">Cambio de plaza actual</option>
+          </select>
+        </div>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
         <div class="form-group"><label class="form-label">Tipo *</label>
           <select class="form-select" id="cFTipo">
@@ -1931,12 +1942,12 @@ function exportAgendaExcel(){const all=SD.flatMap(s=>(s.agenda||[]).map(a=>({'SE
 //  MÓDULO CONTRATACIONES
 // ══════════════════════════════════════════════════════
 let contrats = [
-  {id:1,seremiId:'salud',nombre:'María José Contreras',rut:'15.234.567-8',cargo:'Profesional Sectorial',grado:'Grado 10',tipo:'Honorarios',inicio:'2026-03-01',termino:'2026-12-31',monto:'1850000',financ:'Presupuesto SEREMI',just:'Refuerzo equipo epidemiológico para campaña invierno regional.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'salud',creadoEn:'2026-02-18'},
-  {id:2,seremiId:'educacion',nombre:'Carlos Fuentes Riquelme',rut:'12.876.543-2',cargo:'Analista de Datos',grado:'Grado 12',tipo:'Contrata',inicio:'2026-03-15',termino:'2026-12-31',monto:'1450000',financ:'Programa sectorial',just:'Apoyo al Sistema de Información Escolar regional (SIGE).',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-17',creadoPor:'educacion',creadoEn:'2026-02-10'},
-  {id:3,seremiId:'obras',nombre:'Sofía Espinoza Vera',rut:'16.123.456-7',cargo:'Ingeniero Vial',grado:'Grado 9',tipo:'Honorarios',inicio:'2026-04-01',termino:'2026-10-31',monto:'2100000',financ:'Transferencia GORE',just:'Supervisión obras puente Río Claro sector Talca.',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-20',creadoPor:'obras',creadoEn:'2026-02-14'},
-  {id:4,seremiId:'vivienda',nombre:'Lorena Tapia Muñoz',rut:'14.987.654-3',cargo:'Arquitecta Revisora',grado:'Grado 8',tipo:'Contrata',inicio:'2026-03-01',termino:'2027-02-28',monto:'1720000',financ:'Presupuesto SEREMI',just:'Revisión permisos y proyectos DS19 para sector rural.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'vivienda',creadoEn:'2026-02-21'},
-  {id:5,seremiId:'medioambiente',nombre:'Rodrigo Castro Ibáñez',rut:'17.345.678-4',cargo:'Inspector Ambiental',grado:'Grado 11',tipo:'Honorarios',inicio:'2026-03-15',termino:'2026-09-15',monto:'1350000',financ:'Presupuesto SEREMI',just:'Fiscalización norma SO2 cuenca Río Maule.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'medioambiente',creadoEn:'2026-02-22'},
-  {id:6,seremiId:'agricultura',nombre:'Camila Rojas Figueroa',rut:'13.654.321-K',cargo:'Técnico Agrícola',grado:'Nivel 2',tipo:'Honorarios',inicio:'2026-03-01',termino:'2026-06-30',monto:'980000',financ:'Programa sectorial',just:'Apoyo programa emergencia hídrica zona secana interior.',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-19',creadoPor:'agricultura',creadoEn:'2026-02-12'},
+  {id:1,seremiId:'salud',nombre:'María José Contreras',rut:'15.234.567-8',cargo:'Profesional Sectorial',grado:'Grado 10',tipo:'Honorarios',esNuevo:'Nuevo',inicio:'2026-03-01',termino:'2026-12-31',monto:'1850000',financ:'Presupuesto SEREMI',just:'Refuerzo equipo epidemiológico para campaña invierno regional.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'salud',creadoEn:'2026-02-18'},
+  {id:2,seremiId:'educacion',nombre:'Carlos Fuentes Riquelme',rut:'12.876.543-2',cargo:'Analista de Datos',grado:'Grado 12',tipo:'Contrata',esNuevo:'Cambio',inicio:'2026-03-15',termino:'2026-12-31',monto:'1450000',financ:'Programa sectorial',just:'Apoyo al Sistema de Información Escolar regional (SIGE).',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-17',creadoPor:'educacion',creadoEn:'2026-02-10'},
+  {id:3,seremiId:'obras',nombre:'Sofía Espinoza Vera',rut:'16.123.456-7',cargo:'Ingeniero Vial',grado:'Grado 9',tipo:'Honorarios',esNuevo:'Nuevo',inicio:'2026-04-01',termino:'2026-10-31',monto:'2100000',financ:'Transferencia GORE',just:'Supervisión obras puente Río Claro sector Talca.',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-20',creadoPor:'obras',creadoEn:'2026-02-14'},
+  {id:4,seremiId:'vivienda',nombre:'Lorena Tapia Muñoz',rut:'14.987.654-3',cargo:'Arquitecta Revisora',grado:'Grado 8',tipo:'Contrata',esNuevo:'Cambio',inicio:'2026-03-01',termino:'2027-02-28',monto:'1720000',financ:'Presupuesto SEREMI',just:'Revisión permisos y proyectos DS19 para sector rural.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'vivienda',creadoEn:'2026-02-21'},
+  {id:5,seremiId:'medioambiente',nombre:'Rodrigo Castro Ibáñez',rut:'17.345.678-4',cargo:'Inspector Ambiental',grado:'Grado 11',tipo:'Honorarios',esNuevo:'Nuevo',inicio:'2026-03-15',termino:'2026-09-15',monto:'1350000',financ:'Presupuesto SEREMI',just:'Fiscalización norma SO2 cuenca Río Maule.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'medioambiente',creadoEn:'2026-02-22'},
+  {id:6,seremiId:'agricultura',nombre:'Camila Rojas Figueroa',rut:'13.654.321-K',cargo:'Técnico Agrícola',grado:'Nivel 2',tipo:'Honorarios',esNuevo:'Nuevo',inicio:'2026-03-01',termino:'2026-06-30',monto:'980000',financ:'Programa sectorial',just:'Apoyo programa emergencia hídrica zona secana interior.',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-19',creadoPor:'agricultura',creadoEn:'2026-02-12'},
 ];
 let cNextId=7, cFiltro='todos', cDetalleId=null;
 
@@ -1970,6 +1981,8 @@ function cRenderTable(){
   document.getElementById('cStatHist').textContent=contrats.length;
   const sumaMonto=contrats.reduce((a,c)=>{const n=parseInt(String(c.monto||0).replace(/\D/g,''));return a+(isNaN(n)?0:n);},0);
   document.getElementById('cStatSuma').textContent='$'+sumaMonto.toLocaleString('es-CL');
+  const sumaNuevos=contrats.filter(c=>c.esNuevo==='Nuevo').reduce((a,c)=>{const n=parseInt(String(c.monto||0).replace(/\D/g,''));return a+(isNaN(n)?0:n);},0);
+  document.getElementById('cStatSumaNuevos').textContent='$'+sumaNuevos.toLocaleString('es-CL');
   document.getElementById('cTableCount').textContent=`${data.length} registro${data.length!==1?'s':''}`;
   cUpdateBadge();
 
@@ -2014,6 +2027,7 @@ function openModalNueva(){
     SD.forEach(s=>sel.innerHTML+=`<option value="${s.id}">${s.nombre}</option>`);
   }
   ['cFNombre','cFRut','cFCargo','cFGrado','cFInicio','cFTermino','cFMonto','cFJust'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('cFEsNuevo').value='Nuevo';
   document.getElementById('overlayNueva').classList.add('open');
 }
 
@@ -2036,7 +2050,9 @@ function cGuardar(){
   if(!just){alert('Ingresa la justificación');return;}
   contrats.push({id:cNextId++,seremiId,nombre,rut,cargo,
     grado:document.getElementById('cFGrado').value.trim(),
-    tipo:document.getElementById('cFTipo').value,inicio,termino,monto,
+    tipo:document.getElementById('cFTipo').value,
+    esNuevo:document.getElementById('cFEsNuevo').value,
+    inicio,termino,monto,
     financ:document.getElementById('cFFinanc').value,just,
     estado:'Pendiente',vbQuien:'',vbFecha:'',
     creadoPor:currentUser?.nombre,creadoEn:new Date().toISOString().slice(0,10)});
@@ -2056,6 +2072,7 @@ function cAbrirDetalle(id,e){
   document.getElementById('cDetFields').innerHTML=`
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">RUT</div><div style="font-size:12px;color:var(--text);font-family:'JetBrains Mono',monospace">${c.rut}</div></div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Tipo de contrato</div><div style="font-size:12px;color:var(--text)">${c.tipo}</div></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px;grid-column:1/-1"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Tipo de plaza</div><div style="font-size:12px;color:var(--text)">${c.esNuevo==='Nuevo'?'🆕 Plaza nueva':'🔄 Cambio de plaza actual'}</div></div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Fecha inicio</div><div style="font-size:12px;color:var(--text)">${cFmtFecha(c.inicio)}</div></div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Fecha término</div><div style="font-size:12px;color:var(--text)">${cFmtFecha(c.termino)}</div></div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Monto mensual</div><div style="font-size:16px;color:var(--accent3);font-family:'JetBrains Mono',monospace">${cFmtMonto(c.monto)}</div></div>
@@ -2101,10 +2118,10 @@ function outsideClose(e,id){if(e.target===document.getElementById(id))closeModal
 function exportContratExcel(){
   let data=[...contrats];
   if(currentUser?.rol==='seremi')data=data.filter(c=>c.seremiId===currentUser.seremiId);
-  const rows=data.map(c=>({'#':c.id,'Nombre':c.nombre,'RUT':c.rut,'Cargo':c.cargo,'Grado':c.grado||'','Tipo':c.tipo,'SEREMI':cSeremiNombre(c.seremiId),'Fecha inicio':c.inicio,'Fecha término':c.termino,'Monto mensual':cFmtMonto(c.monto),'Financiamiento':c.financ,'Justificación':c.just,'Estado':c.estado,'VB por':c.vbQuien||'—','Fecha VB':c.vbFecha?cFmtFecha(c.vbFecha):'—','Solicitado por':c.creadoPor,'Fecha solicitud':cFmtFecha(c.creadoEn)}));
+  const rows=data.map(c=>({'#':c.id,'Nombre':c.nombre,'RUT':c.rut,'Cargo':c.cargo,'Grado':c.grado||'','Tipo':c.tipo,'Tipo plaza':c.esNuevo==='Nuevo'?'Plaza nueva':'Cambio de plaza actual','SEREMI':cSeremiNombre(c.seremiId),'Fecha inicio':c.inicio,'Fecha término':c.termino,'Monto mensual':cFmtMonto(c.monto),'Financiamiento':c.financ,'Justificación':c.just,'Estado':c.estado,'VB por':c.vbQuien||'—','Fecha VB':c.vbFecha?cFmtFecha(c.vbFecha):'—','Solicitado por':c.creadoPor,'Fecha solicitud':cFmtFecha(c.creadoEn)}));
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.json_to_sheet(rows);
-  ws['!cols']=[{wch:4},{wch:28},{wch:14},{wch:28},{wch:10},{wch:14},{wch:22},{wch:13},{wch:13},{wch:15},{wch:18},{wch:50},{wch:12},{wch:24},{wch:14},{wch:22},{wch:14}];
+  ws['!cols']=[{wch:4},{wch:28},{wch:14},{wch:28},{wch:10},{wch:14},{wch:18},{wch:22},{wch:13},{wch:13},{wch:15},{wch:18},{wch:50},{wch:12},{wch:24},{wch:14},{wch:22},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws,'Contrataciones');
   XLSX.writeFile(wb,'Contrataciones_SEREMIs_Maule.xlsx');
   showToast('⬇ Excel Contrataciones exportado','#2ec4a5');
