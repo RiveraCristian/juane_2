@@ -370,7 +370,7 @@ header{
 @media(max-width:1100px){.detail-body{grid-template-columns:1fr 1fr;}.kpi-row{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:768px){.container{padding:14px;}header{padding:0 14px;}.kpi-row{grid-template-columns:repeat(2,1fr);}.seremis-grid{grid-template-columns:1fr;}.type-selector{grid-template-columns:repeat(2,1fr);}}
 /* ── STATS ── */
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:26px;}
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:26px;}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
   padding:18px 22px;display:flex;align-items:center;gap:16px;
   transition:border-color .2s;}
@@ -877,6 +877,14 @@ tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
         <div class="stat-card">
           <div class="stat-icon" style="background:rgba(46,196,165,.12)">✅</div>
           <div><div class="stat-val" id="cStatApro" style="color:var(--accent3)">0</div><div class="stat-label">Aprobadas</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(140,100,255,.15)">📊</div>
+          <div><div class="stat-val" id="cStatHist">0</div><div class="stat-label">Contratos históricos</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(46,196,165,.15)">💰</div>
+          <div><div class="stat-val" id="cStatSuma" style="color:var(--accent3)">$0</div><div class="stat-label">Suma pesos mensuales</div></div>
         </div>
       </div>
 
@@ -1959,6 +1967,9 @@ function cRenderTable(){
   document.getElementById('cStatTotal').textContent=base.length;
   document.getElementById('cStatPend').textContent=base.filter(c=>c.estado==='Pendiente').length;
   document.getElementById('cStatApro').textContent=base.filter(c=>c.estado==='Aprobada').length;
+  document.getElementById('cStatHist').textContent=contrats.length;
+  const sumaMonto=contrats.reduce((a,c)=>{const n=parseInt(String(c.monto||0).replace(/\D/g,''));return a+(isNaN(n)?0:n);},0);
+  document.getElementById('cStatSuma').textContent='$'+sumaMonto.toLocaleString('es-CL');
   document.getElementById('cTableCount').textContent=`${data.length} registro${data.length!==1?'s':''}`;
   cUpdateBadge();
 
