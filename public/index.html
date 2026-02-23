@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEREMIS Maule — Sistema de Reportería</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0b0f1a;--bg2:#111827;--bg3:#1a2234;--card:#151e2e;
+  --border:#1e2d45;--accent:#e8a03a;--accent2:#3a7bd5;--accent3:#2ec4a5;
+  --danger:#e85454;--text:#e8edf5;--text2:#8fa3bf;--text3:#4e6480;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 80% 60% at 20% 10%,rgba(58,123,213,.07) 0%,transparent 60%),
+  radial-gradient(ellipse 60% 40% at 80% 80%,rgba(232,160,58,.05) 0%,transparent 50%);
+  pointer-events:none;z-index:0;}
+
+/* ── SCREENS ── */
+.screen{display:none !important;position:relative;z-index:1;}
+.screen.active{display:flex !important;}
+#mainScreen.active{display:block !important;}
+
+/* ══════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════ */
+#loginScreen{
+  min-height:100vh;align-items:center;justify-content:center;
+  background:var(--bg);
+}
+.login-box{
+  width:400px;background:var(--card);border:1px solid var(--border);
+  border-radius:20px;overflow:hidden;
+  box-shadow:0 40px 80px rgba(0,0,0,.5);
+}
+.login-top{
+  padding:36px 36px 28px;text-align:center;
+  background:linear-gradient(180deg,rgba(21,30,46,0) 0%,rgba(11,15,26,0) 100%);
+  border-bottom:1px solid var(--border);
+}
+.login-logo{
+  width:56px;height:56px;margin:0 auto 16px;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-family:'DM Serif Display',serif;font-size:22px;color:#fff;
+}
+.login-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);margin-bottom:4px;}
+.login-sub{font-size:12px;color:var(--text3);}
+.login-form{padding:28px 36px 36px;display:flex;flex-direction:column;gap:16px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);}
+.form-input,.form-select,.form-textarea{
+  background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;
+  padding:11px 14px;transition:border-color .15s;outline:none;width:100%;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent2);}
+.form-input::placeholder{color:var(--text3);}
+.form-textarea{resize:vertical;min-height:72px;}
+.form-select option{background:var(--bg3);}
+.login-btn{
+  width:100%;padding:13px;background:var(--accent2);border:none;border-radius:9px;
+  color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:all .2s;margin-top:4px;
+}
+.login-btn:hover{background:#4a8be5;transform:translateY(-1px);}
+.login-error{
+  background:rgba(232,84,84,.12);border:1px solid rgba(232,84,84,.25);
+  border-radius:8px;padding:10px 14px;font-size:12px;color:var(--danger);
+  display:none;text-align:center;
+}
+.login-error.visible{display:block;}
+.login-hint{
+  background:rgba(58,123,213,.08);border:1px solid rgba(58,123,213,.2);
+  border-radius:8px;padding:12px 14px;font-size:11px;color:var(--text3);line-height:1.7;
+}
+.login-hint strong{color:var(--accent2);}
+
+/* ══════════════════════════════
+   MAIN APP
+══════════════════════════════ */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(11,15,26,.94);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;
+}
+.logo-badge{
+  width:34px;height:34px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-family:'DM Serif Display',serif;font-size:14px;color:#fff;
+}
+.header-title{font-family:'DM Serif Display',serif;font-size:14px;color:var(--text);letter-spacing:.02em;}
+.header-sub{font-size:10px;color:var(--text3);}
+.header-left{display:flex;align-items:center;gap:14px;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.period-badge{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);background:rgba(232,160,58,.1);border:1px solid rgba(232,160,58,.2);padding:4px 11px;border-radius:20px;}
+.user-chip{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;padding:5px 12px 5px 6px;cursor:pointer;
+}
+.user-avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:var(--accent2);display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.user-avatar.admin{background:linear-gradient(135deg,var(--accent),#c97a20);}
+.user-name{font-size:11px;font-weight:600;color:var(--text);}
+.user-role{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;}
+.logout-btn{
+  padding:7px 14px;border-radius:8px;border:1px solid var(--border);
+  background:transparent;color:var(--text2);font-size:11px;cursor:pointer;
+  transition:all .15s;
+}
+.logout-btn:hover{background:rgba(232,84,84,.1);border-color:var(--danger);color:var(--danger);}
+
+/* TAB NAV (admin) */
+.tab-nav{
+  display:flex;gap:0;border-bottom:1px solid var(--border);
+  background:var(--bg2);padding:0 32px;
+}
+.tab-btn{
+  padding:12px 20px;font-size:12px;font-weight:600;color:var(--text3);
+  cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;
+  display:flex;align-items:center;gap:6px;
+}
+.tab-btn:hover{color:var(--text2);}
+.tab-btn.active{color:var(--accent2);border-bottom-color:var(--accent2);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* ── CONTAINER ── */
+.container{position:relative;z-index:1;padding:26px 32px;max-width:1700px;margin:0 auto;}
+
+/* ── SEREMI BANNER (para vista seremi) ── */
+.seremi-banner{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:20px 26px;margin-bottom:22px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-left:4px solid var(--accent2);
+}
+.seremi-banner-info{display:flex;align-items:center;gap:16px;}
+.seremi-avatar-lg{
+  width:48px;height:48px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.seremi-banner-name{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);}
+.seremi-banner-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+.seremi-banner-actions{display:flex;gap:8px;}
+
+/* ── EXPORT BAR ── */
+.export-bar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:10px 16px;margin-bottom:20px;flex-wrap:wrap;
+}
+.export-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;}
+.vdivider{width:1px;height:20px;background:var(--border);}
+
+/* ── BUTTONS ── */
+.btn{padding:8px 14px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:5px;}
+.btn-primary{background:var(--accent2);color:#fff;}
+.btn-primary:hover{background:#4a8be5;transform:translateY(-1px);}
+.btn-success{background:rgba(46,196,165,.15);color:var(--accent3);border:1px solid rgba(46,196,165,.3);}
+.btn-success:hover{background:rgba(46,196,165,.25);}
+.btn-warning{background:rgba(232,160,58,.15);color:var(--accent);border:1px solid rgba(232,160,58,.3);}
+.btn-warning:hover{background:rgba(232,160,58,.25);}
+.btn-danger2{background:rgba(232,84,84,.15);color:var(--danger);border:1px solid rgba(232,84,84,.3);}
+.btn-danger2:hover{background:rgba(232,84,84,.25);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+
+/* ── KPI ── */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px;}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px 17px;position:relative;overflow:hidden;}
+.kpi-card::after{content:'';position:absolute;right:-20px;top:-20px;width:80px;height:80px;border-radius:50%;background:var(--kpi-c,rgba(58,123,213,.08));}
+.kpi-value{font-family:'DM Serif Display',serif;font-size:28px;color:var(--text);line-height:1;margin-bottom:3px;}
+.kpi-name{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;}
+.kpi-delta{font-family:'JetBrains Mono',monospace;font-size:9px;margin-top:4px;color:var(--accent3);}
+
+/* ── PERIOD BAR ── */
+.period-bar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:9px 16px;margin-bottom:12px;flex-wrap:wrap;
+}
+.period-bar-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;}
+.period-chips{display:flex;gap:5px;}
+.p-chip{
+  padding:5px 14px;border-radius:20px;border:1px solid var(--border);
+  font-size:11px;font-weight:600;color:var(--text2);background:var(--bg3);
+  cursor:pointer;transition:all .15s;font-family:'JetBrains Mono',monospace;
+}
+.p-chip:hover{border-color:var(--accent2);color:var(--accent2);}
+.p-chip.active{background:var(--accent2);border-color:var(--accent2);color:#fff;}
+.period-range-display{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);
+  margin-left:auto;background:var(--bg3);border:1px solid var(--border);
+  padding:4px 10px;border-radius:6px;white-space:nowrap;
+}
+
+/* ── FILTERS ── */
+.filters{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;}
+.filter-group{display:flex;gap:5px;flex-wrap:wrap;}
+.f-chip{padding:4px 11px;border-radius:20px;border:1px solid var(--border);font-size:11px;color:var(--text2);background:var(--card);cursor:pointer;transition:all .15s;font-weight:500;}
+.f-chip:hover,.f-chip.active{border-color:var(--accent2);color:var(--accent2);background:rgba(58,123,213,.1);}
+.f-chip.active{font-weight:600;}
+
+/* ── SEREMI GRID ── */
+.seremis-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--text);}
+.section-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);}
+.seremis-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:13px;margin-bottom:24px;}
+.seremi-card{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;cursor:pointer;transition:all .25s;}
+.seremi-card:hover{border-color:var(--accent2);transform:translateY(-2px);box-shadow:0 12px 40px rgba(0,0,0,.4);}
+.seremi-card.selected{border-color:var(--accent2);box-shadow:0 0 0 2px rgba(58,123,213,.3);}
+.card-stripe{height:4px;}
+.card-head{padding:11px 15px 9px;display:flex;align-items:flex-start;justify-content:space-between;}
+.card-sector{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:2px;}
+.card-name{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;}
+.card-seremi-name{font-size:10px;color:var(--text3);margin-top:1px;}
+.card-period{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);background:var(--bg3);padding:2px 6px;border-radius:4px;white-space:nowrap;}
+.card-metrics{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border);}
+.metric{padding:8px 9px;border-right:1px solid var(--border);text-align:center;}
+.metric:last-child{border-right:none;}
+.metric-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--text);line-height:1;}
+.metric-val.orange{color:var(--accent);}
+.metric-val.blue{color:var(--accent2);}
+.metric-val.green{color:var(--accent3);}
+.metric-val.red{color:var(--danger);}
+.metric-label{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
+.card-actions{padding:7px 13px;display:flex;gap:5px;border-top:1px solid var(--border);}
+.btn-sm{flex:1;padding:6px 0;border-radius:6px;border:1px solid var(--border);font-size:10px;font-weight:600;cursor:pointer;background:transparent;color:var(--text2);transition:all .15s;text-align:center;}
+.btn-sm:hover{background:var(--bg3);color:var(--text);}
+.btn-sm.primary{background:rgba(58,123,213,.15);border-color:rgba(58,123,213,.3);color:var(--accent2);}
+.btn-sm.dl{background:rgba(232,84,84,.1);border-color:rgba(232,84,84,.25);color:var(--danger);}
+.btn-sm.dlx{background:rgba(46,196,165,.1);border-color:rgba(46,196,165,.25);color:var(--accent3);}
+
+/* ── DETAIL PANEL ── */
+.detail-panel{display:none;background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:24px;overflow:hidden;animation:slideDown .3s ease;}
+.detail-panel.open{display:block;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.detail-header{padding:16px 24px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.detail-title{font-family:'DM Serif Display',serif;font-size:17px;color:var(--text);}
+.detail-close{width:28px;height:28px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.detail-close:hover{background:var(--danger);color:#fff;border-color:var(--danger);}
+.detail-body{display:grid;grid-template-columns:1fr 1fr 1fr;}
+.detail-col{padding:20px 24px;border-right:1px solid var(--border);}
+.detail-col:last-child{border-right:none;}
+.detail-col-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.detail-col-title::before{content:'';display:block;width:12px;height:2px;background:var(--accent2);}
+.item-list{display:flex;flex-direction:column;gap:7px;}
+.item-row{background:var(--bg3);border-radius:7px;padding:8px 11px;display:flex;align-items:flex-start;gap:8px;border:1px solid transparent;transition:border-color .15s;}
+.item-row:hover{border-color:var(--border);}
+.item-icon{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.item-content{flex:1;min-width:0;}
+.item-title{font-size:11px;font-weight:600;color:var(--text);line-height:1.3;}
+.item-meta{font-size:10px;color:var(--text3);margin-top:1px;}
+.item-badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border-radius:4px;flex-shrink:0;align-self:flex-start;}
+.badge-green{background:rgba(46,196,165,.12);color:var(--accent3);}
+.badge-orange{background:rgba(232,160,58,.12);color:var(--accent);}
+.badge-blue{background:rgba(58,123,213,.12);color:var(--accent2);}
+.badge-red{background:rgba(232,84,84,.15);color:var(--danger);}
+.nodo{background:rgba(232,84,84,.08);border:1px solid rgba(232,84,84,.2);border-radius:7px;padding:8px 11px;margin-bottom:7px;}
+.nodo-title{font-size:11px;font-weight:600;color:var(--danger);margin-bottom:3px;}
+.nodo-desc{font-size:10px;color:var(--text2);line-height:1.5;}
+.hito{display:flex;gap:9px;align-items:flex-start;padding-bottom:9px;border-bottom:1px solid var(--border);margin-bottom:9px;}
+.hito:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.hito-date{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);background:rgba(232,160,58,.1);border:1px solid rgba(232,160,58,.2);padding:3px 6px;border-radius:5px;white-space:nowrap;align-self:flex-start;margin-top:1px;}
+.hito-text{font-size:11px;color:var(--text);line-height:1.4;}
+.hito-cat{font-size:9px;color:var(--text3);margin-top:1px;}
+
+/* ── SECTION BLOCK ── */
+.section-block{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:20px;}
+.section-block-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);}
+.section-block-title{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px;}
+.prensa-table{width:100%;border-collapse:collapse;}
+.prensa-table th{padding:8px 18px;text-align:left;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg3);}
+.prensa-table td{padding:9px 18px;font-size:11px;color:var(--text2);border-bottom:1px solid rgba(30,45,69,.5);}
+.prensa-table tr:last-child td{border-bottom:none;}
+.prensa-table tr:hover td{background:rgba(255,255,255,.02);color:var(--text);}
+.prensa-title-cell{color:var(--text)!important;font-weight:500;}
+.seremi-tag{font-size:9px;padding:2px 7px;border-radius:4px;background:rgba(58,123,213,.12);color:var(--accent2);font-weight:600;}
+.sentiment{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;}
+
+/* ══════════════════════════════
+   MODAL (registro + admin)
+══════════════════════════════ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:17px;width:660px;max-height:90vh;overflow-y:auto;animation:modalIn .3s ease;}
+.modal.wide{width:900px;}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{padding:20px 26px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:1;}
+.modal-title{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);}
+.modal-body{padding:20px 26px;}
+.modal-footer{padding:13px 26px 20px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--card);}
+.btn-cancel{padding:9px 18px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:12px;transition:all .15s;}
+.btn-cancel:hover{background:var(--bg3);}
+.btn-save{padding:9px 22px;border-radius:8px;background:var(--accent2);border:none;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-save:hover{background:#4a8be5;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px;}
+.form-row.full{grid-template-columns:1fr;}
+.form-row.three{grid-template-columns:1fr 1fr 1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+
+/* tipo selector */
+.type-selector{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;}
+.type-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  padding:12px 8px;text-align:center;cursor:pointer;transition:all .2s;
+}
+.type-card:hover{border-color:var(--accent2);background:rgba(58,123,213,.08);}
+.type-card.active{border-color:var(--accent2);background:rgba(58,123,213,.12);box-shadow:0 0 0 2px rgba(58,123,213,.2);}
+.type-card-icon{font-size:22px;margin-bottom:6px;}
+.type-card-label{font-size:10px;font-weight:600;color:var(--text2);line-height:1.3;}
+.type-card.active .type-card-label{color:var(--accent2);}
+.type-fields{display:none;}
+.type-fields.active{display:block;}
+.urgencia-group{display:flex;gap:8px;margin-top:4px;}
+.urgencia-btn{flex:1;padding:8px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;}
+.urgencia-btn:hover{border-color:var(--text3);}
+.urgencia-btn.sel-alta{background:rgba(232,84,84,.15);border-color:var(--danger);color:var(--danger);}
+.urgencia-btn.sel-media{background:rgba(232,160,58,.12);border-color:var(--accent);color:var(--accent);}
+.urgencia-btn.sel-baja{background:rgba(46,196,165,.1);border-color:var(--accent3);color:var(--accent3);}
+
+/* ══════════════════════════════
+   ADMIN — PANEL USUARIOS
+══════════════════════════════ */
+.admin-users-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:24px;}
+.user-card{
+  background:var(--card);border:1px solid var(--border);border-radius:13px;
+  padding:18px 20px;display:flex;flex-direction:column;gap:12px;
+  transition:border-color .2s;
+}
+.user-card:hover{border-color:var(--border);}
+.user-card-top{display:flex;align-items:center;gap:12px;}
+.user-card-avatar{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;}
+.user-card-name{font-size:14px;font-weight:600;color:var(--text);}
+.user-card-seremi{font-size:11px;color:var(--text3);margin-top:1px;}
+.user-card-role{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border-radius:4px;}
+.role-admin{background:rgba(232,160,58,.12);color:var(--accent);}
+.role-seremi{background:rgba(58,123,213,.12);color:var(--accent2);}
+.user-card-meta{display:flex;gap:10px;flex-wrap:wrap;}
+.user-meta-item{font-size:10px;color:var(--text3);display:flex;align-items:center;gap:4px;}
+.user-meta-item strong{color:var(--text2);}
+.user-card-actions{display:flex;gap:7px;border-top:1px solid var(--border);padding-top:12px;}
+.add-user-card{
+  background:transparent;border:1px dashed var(--border);border-radius:13px;
+  padding:18px 20px;display:flex;align-items:center;justify-content:center;
+  gap:10px;cursor:pointer;transition:all .2s;color:var(--text3);font-size:12px;font-weight:600;
+  min-height:140px;
+}
+.add-user-card:hover{border-color:var(--accent2);color:var(--accent2);background:rgba(58,123,213,.05);}
+.add-user-card-icon{font-size:24px;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;z-index:500;padding:11px 20px;border-radius:9px;font-size:12px;font-weight:600;pointer-events:none;color:#fff;animation:slideDown .3s ease;}
+
+/* ── Responsive ── */
+@media(max-width:1100px){.detail-body{grid-template-columns:1fr 1fr;}.kpi-row{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:768px){.container{padding:14px;}header{padding:0 14px;}.kpi-row{grid-template-columns:repeat(2,1fr);}.seremis-grid{grid-template-columns:1fr;}.type-selector{grid-template-columns:repeat(2,1fr);}}
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:26px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:18px 22px;display:flex;align-items:center;gap:16px;
+  transition:border-color .2s;}
+.stat-card:hover{border-color:rgba(58,123,213,.3);}
+.stat-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;
+  justify-content:center;font-size:22px;flex-shrink:0;}
+.stat-val{font-family:'DM Serif Display',serif;font-size:32px;line-height:1;}
+.stat-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-top:3px;}
+
+/* ── FILTERS ── */
+.filters-row{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.f-chip{padding:5px 14px;border-radius:20px;border:1px solid var(--border);
+  font-size:11px;font-weight:600;color:var(--t2);background:var(--bg3);
+  cursor:pointer;transition:all .15s;}
+.f-chip:hover{border-color:var(--a2);color:var(--a2);}
+.f-chip.active{background:var(--a2);border-color:var(--a2);color:#fff;}
+.f-chip.pend-chip.active{background:var(--accent);border-color:var(--accent);color:#000;}
+.search-wrap{position:relative;}
+.search-input{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:7px 14px 7px 34px;font-size:11px;color:var(--text);font-family:'DM Sans',sans-serif;
+  width:220px;outline:none;transition:border-color .15s;}
+.search-input:focus{border-color:var(--a2);}
+.search-input::placeholder{color:var(--t3);}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.table-head-bar{padding:14px 20px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.table-head-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px;}
+.table-count{font-size:10px;color:var(--t3);background:var(--bg3);
+  padding:2px 9px;border-radius:10px;border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;}
+th{padding:9px 18px;text-align:left;font-size:9px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--t3);
+  border-bottom:1px solid var(--border);background:var(--bg3);white-space:nowrap;}
+td{padding:13px 18px;font-size:11px;color:var(--t2);
+  border-bottom:1px solid rgba(30,45,69,.6);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
+.td-name{color:var(--text)!important;font-weight:600;font-size:12px!important;}
+.td-rut{font-family:'JetBrains Mono',monospace;font-size:10px!important;color:var(--t3)!important;margin-top:2px;}
+.td-cargo{color:var(--text)!important;font-size:11px!important;}
+.td-grado{font-size:10px!important;color:var(--t3)!important;}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;
+  background:currentColor;opacity:.75;}
+.badge-pend{background:rgba(232,160,58,.15);color:var(--accent);border:1px solid rgba(232,160,58,.3);}
+.badge-apro{background:rgba(46,196,165,.12);color:var(--a3);border:1px solid rgba(46,196,165,.3);}
+.tipo-tag{background:var(--bg3);border:1px solid var(--border);
+  padding:2px 9px;border-radius:5px;font-size:10px;color:var(--t2);}
+.seremi-tag{background:rgba(58,123,213,.1);border:1px solid rgba(58,123,213,.2);
+  padding:2px 9px;border-radius:5px;font-size:10px;color:var(--a2);white-space:nowrap;}
+
+/* ── ACTION BUTTONS ── */
+.action-row{display:flex;gap:5px;align-items:center;}
+.ab{padding:5px 10px;border-radius:7px;font-size:10px;font-weight:700;
+  cursor:pointer;border:1px solid;transition:all .18s;font-family:'DM Sans',sans-serif;
+  display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+.ab-ver{background:var(--bg3);color:var(--t2);border-color:var(--border);}
+.ab-ver:hover{background:var(--a2);color:#fff;border-color:var(--a2);}
+.ab-vb{background:rgba(46,196,165,.15);color:var(--a3);border-color:rgba(46,196,165,.4);}
+.ab-vb:hover{background:var(--a3);color:#0b0f1a;}
+
+/* ── EMPTY STATE ── */
+.empty-state{padding:60px 20px;text-align:center;color:var(--t3);}
+.empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-title{font-size:14px;color:var(--t2);margin-bottom:5px;}
+.empty-sub{font-size:11px;}
+
+/* ── MODAL OVERLAY ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
+  z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.open{display:flex;}
+.cbadge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+.cbadge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.75;}
+.cpend{background:rgba(232,160,58,.15);color:var(--accent);border:1px solid rgba(232,160,58,.3);}
+.capro{background:rgba(46,196,165,.12);color:var(--accent3);border:1px solid rgba(46,196,165,.3);}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:18px;
+  width:680px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;
+  box-shadow:0 40px 80px rgba(0,0,0,.55);}
+.modal-lg{width:720px;}
+.modal-hd{padding:20px 26px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.modal-title{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);}
+.modal-close{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--t2);font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.modal-close:hover{border-color:var(--danger);color:var(--danger);}
+.modal-body{padding:22px 26px;overflow-y:auto;flex:1;}
+.modal-ft{padding:16px 26px;border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;}
+.btn-cancel{padding:9px 20px;border-radius:9px;border:1px solid var(--border);
+  background:transparent;color:var(--t2);font-size:12px;font-weight:600;
+  cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-cancel:hover{border-color:var(--t2);}
+.btn-save{padding:9px 22px;border-radius:9px;background:var(--a2);border:none;
+  color:#fff;font-size:12px;font-weight:600;cursor:pointer;
+  font-family:'DM Sans',sans-serif;transition:all .2s;}
+.btn-save:hover{background:#2d65bb;}
+.btn-save-green{background:var(--a3);color:#0b0f1a;}
+.btn-save-green:hover{background:#28b096;}
+
+/* ── FORM ── */
+.msec{margin-bottom:20px;}
+.msec-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--a2);margin-bottom:12px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);}
+.frow{display:grid;gap:12px;margin-bottom:12px;}
+.frow-2{grid-template-columns:1fr 1fr;}
+.frow-3{grid-template-columns:1fr 1fr 1fr;}
+.frow-1{grid-template-columns:1fr;}
+.fgroup{display:flex;flex-direction:column;gap:5px;}
+.flabel{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t3);}
+.finput,.fselect,.ftextarea{background:var(--bg3);border:1px solid var(--border);
+  border-radius:9px;padding:9px 13px;font-size:12px;color:var(--text);
+  font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s;width:100%;}
+.finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--a2);}
+.finput::placeholder,.ftextarea::placeholder{color:var(--t3);}
+.ftextarea{resize:vertical;min-height:70px;}
+.fselect{appearance:none;cursor:pointer;}
+.upload-zone{background:var(--bg3);border:2px dashed var(--border);border-radius:11px;
+  padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;}
+.upload-zone:hover{border-color:var(--a2);}
+.upload-icon{font-size:32px;margin-bottom:8px;}
+.upload-text{font-size:12px;color:var(--t2);}
+.upload-sub{font-size:10px;color:var(--t3);margin-top:5px;}
+.upload-note{margin-top:10px;background:rgba(58,123,213,.08);border:1px solid rgba(58,123,213,.2);
+  border-radius:6px;padding:6px 12px;font-size:10px;color:var(--a2);display:inline-block;}
+
+/* ── DETAIL MODAL ── */
+.det-hd{padding:20px 26px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.det-name{font-family:'DM Serif Display',serif;font-size:20px;color:var(--text);}
+.det-sub{font-size:11px;color:var(--t3);margin-top:4px;}
+.det-hd-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.det-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
+.det-field{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px;}
+.det-flabel{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);margin-bottom:4px;}
+.det-fval{font-size:12px;color:var(--text);font-weight:500;line-height:1.4;}
+.det-full{grid-column:1/-1;}
+
+/* ── VB PANEL ── */
+.vb-panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 22px;}
+.vb-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;}
+.vb-step{display:flex;align-items:flex-start;gap:14px;padding:12px 0;}
+.vb-step+.vb-step{border-top:1px solid var(--border);}
+.vb-connector{display:flex;flex-direction:column;align-items:center;gap:0;}
+.vb-dot{width:34px;height:34px;border-radius:50%;border:2px solid;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .3s;}
+.vb-dot.done{border-color:var(--a3);background:rgba(46,196,165,.12);}
+.vb-dot.waiting{border-color:var(--border);background:var(--bg3);}
+.vb-info{flex:1;}
+.vb-role{font-size:12px;font-weight:600;color:var(--text);}
+.vb-desc{font-size:10px;color:var(--t3);margin-top:2px;}
+.vb-date{font-family:'JetBrains Mono',monospace;font-size:10px;
+  margin-left:auto;white-space:nowrap;padding-top:2px;}
+.vb-date.done-date{color:var(--a3);}
+.vb-date.wait-date{color:var(--t3);}
+
+/* ── VB ACTION BOX ── */
+.vb-action-box{margin-top:18px;background:rgba(46,196,165,.05);
+  border:1px solid rgba(46,196,165,.2);border-radius:11px;padding:18px 20px;}
+.vb-action-title{font-size:12px;font-weight:600;color:var(--a3);margin-bottom:14px;
+  display:flex;align-items:center;gap:7px;}
+.vb-action-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.btn-vb-confirm{padding:12px 28px;background:var(--a3);border:none;border-radius:10px;
+  color:#0b0f1a;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;transition:all .2s;letter-spacing:.01em;}
+.btn-vb-confirm:hover{background:#28b096;transform:translateY(-1px);box-shadow:0 6px 20px rgba(46,196,165,.3);}
+.vb-action-note{font-size:11px;color:var(--t3);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:26px;right:26px;padding:12px 20px;border-radius:10px;
+  font-size:12px;font-weight:600;color:#fff;z-index:999;
+  animation:slideup .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.3);}
+@keyframes slideup{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* === FIN CONTRATACIONES === */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);
+  z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.open{display:flex;}
+.cbadge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;}
+.cbadge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.75;}
+.cpend{background:rgba(232,160,58,.15);color:var(--accent);border:1px solid rgba(232,160,58,.3);}
+.capro{background:rgba(46,196,165,.12);color:var(--accent3);border:1px solid rgba(46,196,165,.3);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════ -->
+<div id="loginScreen" class="screen active">
+  <div class="login-box">
+    <div class="login-top">
+      <div class="login-logo">M</div>
+      <div class="login-title">SEREMIS Maule</div>
+      <div class="login-sub">Sistema de Reportería Sectorial · Gobierno Regional</div>
+    </div>
+    <div class="login-form">
+      <div class="form-group">
+        <label class="form-label">Usuario</label>
+        <input type="text" class="form-input" id="loginUser" placeholder="Ingresa tu usuario" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <input type="password" class="form-input" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="login-error" id="loginError">Usuario o contraseña incorrectos.</div>
+      <button class="login-btn" onclick="doLogin()">Ingresar</button>
+      <div class="login-hint">
+        <strong>Admin:</strong> admin / admin123<br>
+        <strong>SEREMIs:</strong> salud / seremi123 &nbsp;·&nbsp; educacion / seremi123<br>
+        <em style="font-size:10px">Todos los seremis usan la misma clave por defecto</em>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN SCREEN
+══════════════════════════════════════ -->
+<div id="mainScreen" class="screen">
+  <header>
+    <div class="header-left">
+      <div class="logo-badge">M</div>
+      <div>
+        <div class="header-title">Observatorio SEREMIS — Región del Maule</div>
+        <div class="header-sub">Sistema de Reportería Sectorial · Gobierno Regional</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="period-badge" id="currentPeriod">—</div>
+      <div class="user-chip" id="userChip">
+        <div class="user-avatar" id="userAvatar">—</div>
+        <div>
+          <div class="user-name" id="userName">—</div>
+          <div class="user-role" id="userRole">—</div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Salir</button>
+    </div>
+  </header>
+
+  <!-- Admin tab nav -->
+  <div class="tab-nav" id="adminTabs" style="display:none">
+    <div class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</div>
+    <div class="tab-btn" onclick="switchTab('contrataciones',this)">📋 Contrataciones <span id="vbBadge" style="display:none;background:var(--accent);color:#0b0f1a;border-radius:10px;padding:1px 7px;font-size:9px;font-weight:700;margin-left:3px">0</span></div>
+    <div class="tab-btn" onclick="switchTab('usuarios',this)">👥 Usuarios y SEREMIs</div>
+  </div>
+
+  <!-- SEREMI tab nav -->
+  <div class="tab-nav" id="seremiTabs" style="display:none">
+    <div class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</div>
+    <div class="tab-btn" onclick="switchTab('miseremi',this)">📋 Mi SEREMI</div>
+    <div class="tab-btn" onclick="switchTab('contrataciones',this)">📋 Contrataciones <span id="vbBadgeSeremi" style="display:none;background:var(--accent);color:#0b0f1a;border-radius:10px;padding:1px 7px;font-size:9px;font-weight:700;margin-left:3px">0</span></div>
+  </div>
+
+  <!-- TAB: DASHBOARD -->
+  <div class="tab-content active" id="tab-dashboard">
+    <div class="container">
+
+      <!-- SEREMI BANNER (solo vista seremi) -->
+      <div class="seremi-banner" id="seremiBanner" style="display:none">
+        <div class="seremi-banner-info">
+          <div class="seremi-avatar-lg" id="seremiBannerAvatar">S</div>
+          <div>
+            <div class="seremi-banner-name" id="seremiBannerName">—</div>
+            <div class="seremi-banner-meta" id="seremiBannerMeta">—</div>
+          </div>
+        </div>
+        <div class="seremi-banner-actions">
+          <button class="btn btn-primary" onclick="openNewRecord()">+ Nuevo Registro</button>
+        </div>
+      </div>
+
+      <!-- EXPORT BAR (solo admin) -->
+      <div class="export-bar" id="exportBar">
+        <span class="export-label">Exportar</span>
+        <button class="btn btn-danger2" onclick="exportAllPDF()">⬇ PDF Global</button>
+        <button class="btn btn-success" onclick="exportAllExcel()">⬇ Excel Completo</button>
+        <div class="vdivider"></div>
+        <button class="btn btn-primary" onclick="openNewRecord()">+ Nuevo Registro</button>
+        <div class="vdivider"></div>
+        <span style="font-size:10px;color:var(--text3)">PDF individual disponible en cada tarjeta</span>
+      </div>
+
+      <!-- PERIOD BAR -->
+      <div class="period-bar" id="periodBar">
+        <span class="period-bar-label">Período</span>
+        <div class="period-chips">
+          <div class="p-chip" data-months="1" onclick="filterPeriod(this)">1 mes</div>
+          <div class="p-chip" data-months="3" onclick="filterPeriod(this)">3 meses</div>
+          <div class="p-chip" data-months="6" onclick="filterPeriod(this)">6 meses</div>
+          <div class="p-chip active" data-months="12" onclick="filterPeriod(this)">1 año</div>
+        </div>
+        <div class="period-range-display" id="periodRangeDisplay">—</div>
+      </div>
+
+      <!-- FILTERS (solo admin) -->
+      <div class="filters" id="filterBar">
+        <span class="filter-label">Sector</span>
+        <div class="filter-group" id="filterGroup">
+          <div class="f-chip active" data-filter="all" onclick="filterCards(this)">Todos</div>
+          <div class="f-chip" data-filter="salud" onclick="filterCards(this)">Salud</div>
+          <div class="f-chip" data-filter="educacion" onclick="filterCards(this)">Educación</div>
+          <div class="f-chip" data-filter="obras" onclick="filterCards(this)">MOP</div>
+          <div class="f-chip" data-filter="agricultura" onclick="filterCards(this)">Agricultura</div>
+          <div class="f-chip" data-filter="vivienda" onclick="filterCards(this)">Vivienda</div>
+          <div class="f-chip" data-filter="transporte" onclick="filterCards(this)">Transporte</div>
+          <div class="f-chip" data-filter="bienes" onclick="filterCards(this)">Bienes Nacionales</div>
+          <div class="f-chip" data-filter="trabajo" onclick="filterCards(this)">Trabajo</div>
+          <div class="f-chip" data-filter="medioambiente" onclick="filterCards(this)">Medio Ambiente</div>
+          <div class="f-chip" data-filter="energia" onclick="filterCards(this)">Energía</div>
+          <div class="f-chip" data-filter="economia" onclick="filterCards(this)">Economía</div>
+          <div class="f-chip" data-filter="mineria" onclick="filterCards(this)">Minería</div>
+          <div class="f-chip" data-filter="desarrollosocial" onclick="filterCards(this)">Des. Social</div>
+          <div class="f-chip" data-filter="justicia" onclick="filterCards(this)">Justicia</div>
+          <div class="f-chip" data-filter="interior" onclick="filterCards(this)">Interior</div>
+          <div class="f-chip" data-filter="cultura" onclick="filterCards(this)">Cultura</div>
+          <div class="f-chip" data-filter="ciencia" onclick="filterCards(this)">Ciencia</div>
+          <div class="f-chip" data-filter="deporte" onclick="filterCards(this)">Deporte</div>
+          <div class="f-chip" data-filter="mujer" onclick="filterCards(this)">Mujer</div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi-card" style="--kpi-c:rgba(58,123,213,.1)"><div class="kpi-value" id="kpi-seremis">19</div><div class="kpi-name">SEREMIs activas</div><div class="kpi-delta">↑ 100% cobertura</div></div>
+        <div class="kpi-card" style="--kpi-c:rgba(232,160,58,.1)"><div class="kpi-value" id="kpi-visitas">—</div><div class="kpi-name">Visitas a comunas</div><div class="kpi-delta">Total período</div></div>
+        <div class="kpi-card" style="--kpi-c:rgba(46,196,165,.1)"><div class="kpi-value" id="kpi-contactos">—</div><div class="kpi-name">Personas en eventos</div><div class="kpi-delta">Total período</div></div>
+        <div class="kpi-card" style="--kpi-c:rgba(232,84,84,.08)"><div class="kpi-value" id="kpi-prensa">—</div><div class="kpi-name">Apariciones prensa</div><div class="kpi-delta">Total período</div></div>
+        <div class="kpi-card" style="--kpi-c:rgba(58,123,213,.08)"><div class="kpi-value" id="kpi-proyectos">—</div><div class="kpi-name">Proyectos activos</div><div class="kpi-delta">Total región</div></div>
+        <div class="kpi-card" style="--kpi-c:rgba(232,84,84,.1)"><div class="kpi-value" id="kpi-nudos">—</div><div class="kpi-name">Nudos críticos</div><div class="kpi-delta" style="color:var(--danger)">Requieren atención</div></div>
+      </div>
+
+      <!-- GRID -->
+      <div class="seremis-header">
+        <div class="section-title" id="gridTitle">Reportes por SEREMI</div>
+        <div class="section-count" id="cardCount">—</div>
+      </div>
+      <div class="seremis-grid" id="seremisGrid"></div>
+
+      <!-- DETAIL PANEL -->
+      <div class="detail-panel" id="detailPanel">
+        <div class="detail-header">
+          <div>
+            <div class="detail-title" id="detailTitle">—</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px" id="detailSub"></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-danger2" onclick="exportSinglePDF()">⬇ PDF</button>
+            <button class="btn btn-success" onclick="exportSingleExcel()">⬇ Excel</button>
+            <button class="detail-close" onclick="closeDetail()">×</button>
+          </div>
+        </div>
+        <div class="detail-body" id="detailBody"></div>
+      </div>
+
+      <!-- PRENSA -->
+      <div class="section-block">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>📰</span> Últimas Apariciones en Prensa</div>
+          <button class="btn btn-success" onclick="exportPrensaExcel()">⬇ Excel Prensa</button>
+        </div>
+        <table class="prensa-table">
+          <thead><tr><th>Titular</th><th>Medio</th><th>SEREMI</th><th>Fecha</th><th>Tono</th></tr></thead>
+          <tbody id="prensaBody"></tbody>
+        </table>
+      </div>
+
+      <!-- TEMAS + AGENDA -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px">
+        <div class="section-block">
+          <div class="section-block-header">
+            <div class="section-block-title"><span>💡</span> Propuesta de Temas</div>
+          </div>
+          <div style="padding:14px 18px" id="temasContainer"></div>
+        </div>
+        <div class="section-block">
+          <div class="section-block-header">
+            <div class="section-block-title"><span>📅</span> Agenda de Hitos Relevantes</div>
+            <button class="btn btn-warning" onclick="exportAgendaExcel()">⬇ Excel</button>
+          </div>
+          <div style="padding:14px 18px" id="agendaContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- TAB: MI SEREMI (solo vista seremi) -->
+  <div class="tab-content" id="tab-miseremi">
+    <div class="container">
+      <!-- Banner -->
+      <div class="seremi-banner" id="miSeremiBanner" style="border-left:4px solid var(--accent2)">
+        <div class="seremi-banner-info">
+          <div class="seremi-avatar-lg" id="miSeremiAvatar" style="background:var(--accent2)">S</div>
+          <div>
+            <div class="seremi-banner-name" id="miSeremiName">—</div>
+            <div class="seremi-banner-meta" id="miSeremiMeta">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visitas -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>🗺️</span> Visitas a Comunas <span class="table-count" id="msVisitasCount">0</span></div>
+          <button class="btn btn-primary" onclick="openNewRecord(null)" style="font-size:11px">+ Agregar Visita</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Fecha</th><th>Comuna</th><th>Lugar</th><th>Personas</th><th>Descripción</th><th>Acción</th></tr></thead>
+        <tbody id="msVisitasBody"></tbody></table>
+      </div>
+
+      <!-- Proyectos -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>📌</span> Proyectos <span class="table-count" id="msProyCount">0</span></div>
+          <button class="btn btn-primary" onclick="msAddRecord('proyecto')" style="font-size:11px">+ Agregar Proyecto</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Proyecto</th><th>Meta</th><th>Estado</th><th>Acción</th></tr></thead>
+        <tbody id="msProyBody"></tbody></table>
+      </div>
+
+      <!-- Nudos -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>⚠️</span> Nudos Críticos <span class="table-count" id="msNudosCount">0</span></div>
+          <button class="btn btn-primary" onclick="msAddRecord('nudo')" style="font-size:11px">+ Agregar Nudo</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Título</th><th>Descripción</th><th>Urgencia</th><th>Acción</th></tr></thead>
+        <tbody id="msNudosBody"></tbody></table>
+      </div>
+
+      <!-- Temas -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>💡</span> Temas Propuestos <span class="table-count" id="msTemasCount">0</span></div>
+          <button class="btn btn-primary" onclick="msAddRecord('tema')" style="font-size:11px">+ Agregar Tema</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Tema</th><th>Prioridad</th><th>Acción</th></tr></thead>
+        <tbody id="msTemasBody"></tbody></table>
+      </div>
+
+      <!-- Agenda -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>📅</span> Agenda de Hitos <span class="table-count" id="msAgendaCount">0</span></div>
+          <button class="btn btn-primary" onclick="msAddRecord('agenda')" style="font-size:11px">+ Agregar Hito</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Acción</th></tr></thead>
+        <tbody id="msAgendaBody"></tbody></table>
+      </div>
+
+      <!-- Prensa -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>📰</span> Apariciones en Prensa <span class="table-count" id="msPrensaCount">0</span></div>
+          <button class="btn btn-primary" onclick="msAddRecord('prensa')" style="font-size:11px">+ Agregar Prensa</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Titular</th><th>Medio</th><th>Fecha</th><th>Tono</th><th>Acción</th></tr></thead>
+        <tbody id="msPrensaBody"></tbody></table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB: CONTRATACIONES -->
+  <div class="tab-content" id="tab-contrataciones">
+    <div class="container">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="section-title">Contrataciones Nuevas</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Solicitudes de contratación · Requieren Visto Bueno del Administrador Regional</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-success" onclick="exportContratExcel()">⬇ Excel</button>
+          <button class="btn btn-primary" onclick="openModalNueva()">+ Nueva Contratación</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(58,123,213,.15)">📋</div>
+          <div><div class="stat-val" id="cStatTotal">0</div><div class="stat-label">Total solicitudes</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(232,160,58,.15)">⏳</div>
+          <div><div class="stat-val" id="cStatPend" style="color:var(--accent)">0</div><div class="stat-label">Pendientes de VB</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:rgba(46,196,165,.12)">✅</div>
+          <div><div class="stat-val" id="cStatApro" style="color:var(--accent3)">0</div><div class="stat-label">Aprobadas</div></div>
+        </div>
+      </div>
+
+      <!-- Filtros + búsqueda -->
+      <div class="filters-row">
+        <div class="filter-chips" id="cFilterChips">
+          <div class="f-chip active" data-f="todos"    onclick="cFilterBy(this)">Todas</div>
+          <div class="f-chip pend-chip" data-f="Pendiente" onclick="cFilterBy(this)">⏳ Pendiente VB</div>
+          <div class="f-chip" data-f="Aprobada"  onclick="cFilterBy(this)">✅ Aprobadas</div>
+        </div>
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" type="text" id="cSearch"
+            placeholder="Buscar nombre, RUT, cargo..."
+            oninput="cRenderTable()">
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="table-wrap">
+        <div class="table-head-bar">
+          <div class="table-head-title">
+            📋 Solicitudes de Contratación
+            <span class="table-count" id="cTableCount">0 registros</span>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Nombre / RUT</th><th>Cargo · Grado</th><th>Tipo</th>
+                <th>SEREMI</th><th>Período</th><th>Monto mensual</th><th>Estado</th><th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="cTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: USUARIOS (solo admin) -->
+  <div class="tab-content" id="tab-usuarios">
+    <div class="container">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+        <div>
+          <div class="section-title">Gestión de Usuarios y SEREMIs</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Administra los datos de cada SEREMI y sus credenciales de acceso</div>
+        </div>
+        <button class="btn btn-primary" onclick="openAddUser()">+ Agregar Usuario</button>
+      </div>
+      <div class="admin-users-grid" id="adminUsersGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL — NUEVA CONTRATACIÓN
+══════════════════════════════════════ -->
+<div class="overlay" id="overlayNueva" onclick="outsideClose(event,'overlayNueva')">
+  <div class="modal" style="background:var(--card);border-radius:18px;width:680px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 40px 80px rgba(0,0,0,.55)">
+    <div style="padding:20px 26px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--text)">Nueva Solicitud de Contratación</div>
+      <button class="detail-close" onclick="closeModal('overlayNueva')">×</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1;padding:22px 26px">
+      <div id="cAdminSeremiField" style="display:none;margin-bottom:16px">
+        <div class="form-group">
+          <label class="form-label">SEREMI Solicitante *</label>
+          <select class="form-select" id="cFSeremi"><option value="">Seleccionar SEREMI...</option></select>
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">👤 Persona a contratar</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="form-group"><label class="form-label">Nombre completo *</label><input type="text" class="form-input" id="cFNombre" placeholder="Nombre y apellidos"></div>
+        <div class="form-group"><label class="form-label">RUT *</label><input type="text" class="form-input" id="cFRut" placeholder="12.345.678-9"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div class="form-group"><label class="form-label">Cargo / Función *</label><input type="text" class="form-input" id="cFCargo" placeholder="Ej: Profesional Sectorial..."></div>
+        <div class="form-group"><label class="form-label">Grado / Nivel</label><input type="text" class="form-input" id="cFGrado" placeholder="Ej: Grado 10, Nivel 3..."></div>
+      </div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">📄 Datos del contrato</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="form-group"><label class="form-label">Tipo *</label>
+          <select class="form-select" id="cFTipo">
+            <option>Honorarios</option><option>Contrata</option><option>Planta</option>
+            <option>Código del Trabajo</option><option>Reemplazo</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Fecha inicio *</label><input type="date" class="form-input" id="cFInicio"></div>
+        <div class="form-group"><label class="form-label">Fecha término *</label><input type="date" class="form-input" id="cFTermino"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="form-group"><label class="form-label">Monto mensual bruto ($) *</label><input type="text" class="form-input" id="cFMonto" placeholder="Ej: 1.500.000"></div>
+        <div class="form-group"><label class="form-label">Financiamiento</label>
+          <select class="form-select" id="cFFinanc">
+            <option>Presupuesto SEREMI</option><option>Transferencia GORE</option>
+            <option>Programa sectorial</option><option>Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label class="form-label">Justificación / Descripción de funciones *</label>
+        <textarea class="form-textarea" id="cFJust" style="min-height:72px" placeholder="Describe las funciones y por qué se requiere esta contratación..."></textarea>
+      </div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)">📎 Documentos adjuntos</div>
+      <div style="background:var(--bg3);border:2px dashed var(--border);border-radius:10px;padding:22px;text-align:center">
+        <div style="font-size:28px;margin-bottom:8px">📄</div>
+        <div style="font-size:12px;color:var(--text2)">Arrastra archivos o <span style="color:var(--accent2)">haz clic para seleccionar</span></div>
+        <div style="font-size:10px;color:var(--text3);margin-top:5px">PDF, DOCX · Máx. 10 MB · Currículum, certificados, resolución</div>
+        <div style="margin-top:10px;background:rgba(58,123,213,.08);border:1px solid rgba(58,123,213,.2);border-radius:6px;padding:6px 12px;font-size:10px;color:var(--accent2);display:inline-block">🔒 Carga de archivos disponible en versión backend (iPage)</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('overlayNueva')">Cancelar</button>
+      <button class="btn-save" onclick="cGuardar()">📤 Enviar al Administrador</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL — DETALLE CONTRATACIÓN + VB
+══════════════════════════════════════ -->
+<div class="overlay" id="overlayDetalle" onclick="outsideClose(event,'overlayDetalle')">
+  <div class="modal" style="background:var(--card);border-radius:18px;width:720px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 40px 80px rgba(0,0,0,.55);padding:0;overflow:hidden">
+    <div style="padding:20px 26px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-shrink:0">
+      <div>
+        <div style="font-family:'DM Serif Display',serif;font-size:19px;color:var(--text)" id="cDetNombre">—</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px" id="cDetSub">—</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <div id="cDetBadge"></div>
+        <button class="detail-close" onclick="closeModal('overlayDetalle')">×</button>
+      </div>
+    </div>
+    <div class="modal-body" style="overflow-y:auto;flex:1;padding:22px 26px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px" id="cDetFields"></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px 22px">
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:16px">✅ Flujo de Visto Bueno</div>
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div style="width:34px;height:34px;border-radius:50%;border:2px solid var(--accent3);background:rgba(46,196,165,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📤</div>
+          <div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">SEREMI solicitante</div><div style="font-size:10px;color:var(--text3);margin-top:2px" id="cDetVbSeremiDesc">—</div></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent3);white-space:nowrap" id="cDetVbSeremiDate">—</div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:12px 0">
+          <div style="width:34px;height:34px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;transition:all .3s" id="cDetVbAdminDot">⏳</div>
+          <div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">Administrador Regional</div><div style="font-size:10px;color:var(--text3);margin-top:2px" id="cDetVbAdminDesc">Pendiente de Visto Bueno</div></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;white-space:nowrap" id="cDetVbAdminDate" style="color:var(--text3)">—</div>
+        </div>
+      </div>
+      <div id="cVbActionBox" style="display:none;margin-top:18px;background:rgba(46,196,165,.05);border:1px solid rgba(46,196,165,.2);border-radius:11px;padding:18px 20px">
+        <div style="font-size:12px;font-weight:600;color:var(--accent3);margin-bottom:14px">⏳ Esta solicitud requiere tu Visto Bueno</div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <button onclick="cDarVB()" style="padding:12px 28px;background:var(--accent3);border:none;border-radius:10px;color:#0b0f1a;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">✅ Dar Visto Bueno — Aprobar contratación</button>
+          <span style="font-size:11px;color:var(--text3)">El estado cambiará a <strong style="color:var(--accent3)">Aprobada</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL — NUEVO REGISTRO
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modalRecord" onclick="closeModalOutside(event,'modalRecord')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Nuevo Registro</div>
+      <button class="detail-close" onclick="closeModal('modalRecord')">×</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Selector de SEREMI (solo admin) -->
+      <div id="recordSeremiSelect" style="display:none;margin-bottom:16px">
+        <div class="form-group">
+          <label class="form-label">SEREMI (admin)</label>
+          <select class="form-select" id="recordSeremiId">
+            <option value="">Seleccionar SEREMI...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tipo de registro -->
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:10px">Tipo de registro</div>
+      <div class="type-selector">
+        <div class="type-card active" onclick="selectType('visita',this)">
+          <div class="type-card-icon">🗺️</div>
+          <div class="type-card-label">Visita a<br>Comuna</div>
+        </div>
+        <div class="type-card" onclick="selectType('contacto',this)">
+          <div class="type-card-icon">🤝</div>
+          <div class="type-card-label">Evento /<br>Contacto</div>
+        </div>
+        <div class="type-card" onclick="selectType('prensa',this)">
+          <div class="type-card-icon">📰</div>
+          <div class="type-card-label">Aparición<br>Prensa</div>
+        </div>
+        <div class="type-card" onclick="selectType('proyecto',this)">
+          <div class="type-card-icon">📌</div>
+          <div class="type-card-label">Proyecto</div>
+        </div>
+        <div class="type-card" onclick="selectType('nudo',this)">
+          <div class="type-card-icon">⚠️</div>
+          <div class="type-card-label">Nudo<br>Crítico</div>
+        </div>
+        <div class="type-card" onclick="selectType('tema',this)">
+          <div class="type-card-icon">💡</div>
+          <div class="type-card-label">Propuesta<br>de Tema</div>
+        </div>
+        <div class="type-card" onclick="selectType('agenda',this)">
+          <div class="type-card-icon">📅</div>
+          <div class="type-card-label">Hito<br>Agenda</div>
+        </div>
+      </div>
+
+      <!-- CAMPOS por tipo -->
+      <div id="fields-visita" class="type-fields active">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Fecha de visita</label><input type="date" class="form-input" id="v-fecha"></div>
+          <div class="form-group"><label class="form-label">Comuna</label><input type="text" class="form-input" id="v-comuna" placeholder="Ej: Linares"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Lugar / Institución</label><input type="text" class="form-input" id="v-lugar" placeholder="Ej: Municipalidad, Hospital..."></div>
+          <div class="form-group"><label class="form-label">N° personas reunidas</label><input type="number" class="form-input" id="v-personas" placeholder="0" min="0"></div>
+        </div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Descripción / Objetivo</label><textarea class="form-textarea" id="v-desc" placeholder="¿Qué se trató en la visita?"></textarea></div></div>
+      </div>
+
+      <div id="fields-contacto" class="type-fields">
+        <div style="background:rgba(58,123,213,.07);border:1px solid rgba(58,123,213,.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:var(--text2)">
+          📌 Registra un evento o actividad donde participaron personas. Se acumula el total de asistentes.
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nombre del evento</label><input type="text" class="form-input" id="c-nombre" placeholder="Ej: Reunión Mesa Técnica, Taller..."></div>
+          <div class="form-group"><label class="form-label">Fecha</label><input type="date" class="form-input" id="c-fecha"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Lugar / Comuna</label><input type="text" class="form-input" id="c-lugar" placeholder="Ej: Talca, Curicó..."></div>
+          <div class="form-group"><label class="form-label">N° de participantes</label><input type="number" class="form-input" id="c-personas" placeholder="0" min="0"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Tipo de evento</label>
+            <select class="form-select" id="c-tipo">
+              <option>Reunión sectorial</option><option>Taller / Capacitación</option>
+              <option>Actividad comunitaria</option><option>Acto oficial</option>
+              <option>Mesa técnica</option><option>Visita terreno</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Instituciones participantes</label><input type="text" class="form-input" id="c-inst" placeholder="Ej: Municipio, GORE, ONGs..."></div>
+        </div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Descripción / Resultados</label><textarea class="form-textarea" id="c-desc" placeholder="¿Cuál fue el resultado o acuerdos?"></textarea></div></div>
+      </div>
+
+      <div id="fields-prensa" class="type-fields">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Titular</label><input type="text" class="form-input" id="p-titular" placeholder="Título de la nota o artículo"></div>
+          <div class="form-group"><label class="form-label">Medio</label><input type="text" class="form-input" id="p-medio" placeholder="Ej: El Centro, La Prensa..."></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Fecha de publicación</label><input type="date" class="form-input" id="p-fecha"></div>
+          <div class="form-group"><label class="form-label">Tipo de medio</label>
+            <select class="form-select" id="p-tipo">
+              <option>Diario impreso</option><option>Portal digital</option>
+              <option>Radio</option><option>Televisión</option><option>Redes sociales</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:13px">
+          <label class="form-label">Tono de la nota</label>
+          <div class="urgencia-group">
+            <div class="urgencia-btn sel-alta" onclick="selectTono('pos',this)" id="tono-pos">👍 Positivo</div>
+            <div class="urgencia-btn" onclick="selectTono('neu',this)" id="tono-neu">😐 Neutro</div>
+            <div class="urgencia-btn" onclick="selectTono('neg',this)" id="tono-neg">👎 Negativo</div>
+          </div>
+        </div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Enlace (opcional)</label><input type="text" class="form-input" id="p-url" placeholder="https://..."></div></div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Resumen</label><textarea class="form-textarea" id="p-desc" placeholder="Breve descripción de la nota..."></textarea></div></div>
+      </div>
+
+      <div id="fields-proyecto" class="type-fields">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nombre del proyecto</label><input type="text" class="form-input" id="pr-nombre" placeholder="Nombre del proyecto"></div>
+          <div class="form-group"><label class="form-label">Meta / Fecha objetivo</label><input type="text" class="form-input" id="pr-meta" placeholder="Ej: Jun. 2025"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Estado</label>
+            <select class="form-select" id="pr-estado">
+              <option>Activo</option><option>En ejecución</option><option>Licitación</option>
+              <option>Diseño</option><option>Formulación</option><option>Construcción</option><option>Finalizado</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Presupuesto estimado</label><input type="text" class="form-input" id="pr-presupuesto" placeholder="Ej: $250.000.000"></div>
+        </div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Descripción</label><textarea class="form-textarea" id="pr-desc" placeholder="¿En qué consiste el proyecto?"></textarea></div></div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Comunas involucradas</label><input type="text" class="form-input" id="pr-comunas" placeholder="Ej: Talca, Curicó, Linares"></div></div>
+      </div>
+
+      <div id="fields-nudo" class="type-fields">
+        <div class="form-row full"><div class="form-group"><label class="form-label">Título del nudo crítico</label><input type="text" class="form-input" id="n-titulo" placeholder="Nombre corto del problema"></div></div>
+        <div class="form-group" style="margin-bottom:13px">
+          <label class="form-label">Nivel de urgencia</label>
+          <div class="urgencia-group">
+            <div class="urgencia-btn sel-alta" onclick="selectUrgencia('Alta',this)">🔴 Alta</div>
+            <div class="urgencia-btn" onclick="selectUrgencia('Media',this)">🟡 Media</div>
+            <div class="urgencia-btn" onclick="selectUrgencia('Baja',this)">🟢 Baja</div>
+          </div>
+        </div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Descripción del problema</label><textarea class="form-textarea" id="n-desc" placeholder="Describe el nudo crítico en detalle..."></textarea></div></div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Solución propuesta (opcional)</label><textarea class="form-textarea" id="n-solucion" placeholder="¿Qué se necesita para resolverlo?"></textarea></div></div>
+      </div>
+
+      <div id="fields-tema" class="type-fields">
+        <div class="form-row full"><div class="form-group"><label class="form-label">Tema propuesto</label><input type="text" class="form-input" id="t-tema" placeholder="Ej: Salud mental rural, Conectividad..."></div></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Ámbito</label>
+            <select class="form-select" id="t-ambito">
+              <option>Comunicaciones / Prensa</option><option>Agenda política</option>
+              <option>Propuesta legislativa</option><option>Investigación / Estudio</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Prioridad</label>
+            <select class="form-select" id="t-prioridad">
+              <option>Alta</option><option>Media</option><option>Normal</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Contexto / Justificación</label><textarea class="form-textarea" id="t-desc" placeholder="¿Por qué es relevante este tema?"></textarea></div></div>
+      </div>
+
+      <div id="fields-agenda" class="type-fields">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Fecha del hito</label><input type="date" class="form-input" id="a-fecha"></div>
+          <div class="form-group"><label class="form-label">Categoría</label>
+            <select class="form-select" id="a-cat">
+              <option>Inauguración</option><option>Entrega de beneficios</option>
+              <option>Campaña</option><option>Evento</option><option>Licitación</option>
+              <option>Fiscalización</option><option>Reunión oficial</option>
+              <option>Conmemoración</option><option>Ceremonia</option><option>Otro</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Descripción del hito</label><input type="text" class="form-input" id="a-desc" placeholder="Ej: Lanzamiento programa X en Talca"></div></div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Comunas / Lugar</label><input type="text" class="form-input" id="a-lugar" placeholder="Ej: Talca, toda la región..."></div></div>
+        <div class="form-row full"><div class="form-group"><label class="form-label">Notas adicionales</label><textarea class="form-textarea" id="a-notas" placeholder="Información adicional relevante..."></textarea></div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modalRecord')">Cancelar</button>
+      <button class="btn-save" onclick="saveRecord()">Guardar Registro</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL — AGREGAR / EDITAR USUARIO
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modalUser" onclick="closeModalOutside(event,'modalUser')">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalUserTitle">Agregar Usuario</div>
+      <button class="detail-close" onclick="closeModal('modalUser')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre completo</label>
+          <input type="text" class="form-input" id="u-nombre" placeholder="Nombre y apellido">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cargo / Título</label>
+          <input type="text" class="form-input" id="u-cargo" placeholder="Ej: Ing., Dra., Sr., Sra.">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Rol</label>
+          <select class="form-select" id="u-rol" onchange="toggleSeremiField()">
+            <option value="seremi">SEREMI</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <div class="form-group" id="u-seremi-group">
+          <label class="form-label">SEREMI asignada</label>
+          <select class="form-select" id="u-seremi-id">
+            <option value="">Seleccionar...</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Usuario (login)</label>
+          <input type="text" class="form-input" id="u-usuario" placeholder="Ej: salud, educacion...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input type="password" class="form-input" id="u-pass" placeholder="Mínimo 6 caracteres">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="u-email" placeholder="usuario@minsal.cl">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="text" class="form-input" id="u-tel" placeholder="+56 9 xxxx xxxx">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modalUser')">Cancelar</button>
+      <button class="btn-save" onclick="saveUser()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let currentUser = null;
+let activeFilter = 'all';
+let currentDetailId = null;
+let currentRecordType = 'visita';
+let currentUrgencia = 'Alta';
+let currentTono = 'pos';
+let editingUserId = null;
+
+// ═══════════════════════════════════════════════════════
+//  USUARIOS (base de datos local)
+// ═══════════════════════════════════════════════════════
+let USERS = [
+  {id:'admin', username:'admin', pass:'admin123', rol:'admin', nombre:'Administrador Regional', cargo:'Admin', email:'admin@gore-maule.cl', tel:''},
+  {id:'salud', username:'salud', pass:'seremi123', rol:'seremi', seremiId:'salud', nombre:'Carmen López', cargo:'Dra.', email:'clopez@minsal.cl', tel:'+56 9 1111 0001'},
+  {id:'educacion', username:'educacion', pass:'seremi123', rol:'seremi', seremiId:'educacion', nombre:'Rodrigo Valdivia', cargo:'Sr.', email:'rvaldivia@mineduc.cl', tel:'+56 9 1111 0002'},
+  {id:'obras', username:'obras', pass:'seremi123', rol:'seremi', seremiId:'obras', nombre:'Felipe Meza', cargo:'Ing.', email:'fmeza@mop.gov.cl', tel:'+56 9 1111 0003'},
+  {id:'agricultura', username:'agricultura', pass:'seremi123', rol:'seremi', seremiId:'agricultura', nombre:'Marcela Torres', cargo:'Ing.', email:'mtorres@minagri.gob.cl', tel:'+56 9 1111 0004'},
+  {id:'vivienda', username:'vivienda', pass:'seremi123', rol:'seremi', seremiId:'vivienda', nombre:'Sandra Rojas', cargo:'Arq.', email:'srojas@minvu.cl', tel:'+56 9 1111 0005'},
+  {id:'transporte', username:'transporte', pass:'seremi123', rol:'seremi', seremiId:'transporte', nombre:'Pablo Ibáñez', cargo:'Sr.', email:'pibanez@mtt.gob.cl', tel:'+56 9 1111 0006'},
+  {id:'bienes', username:'bienes', pass:'seremi123', rol:'seremi', seremiId:'bienes', nombre:'Antonio Fuentes', cargo:'Sr.', email:'afuentes@bienes.cl', tel:'+56 9 1111 0007'},
+  {id:'trabajo', username:'trabajo', pass:'seremi123', rol:'seremi', seremiId:'trabajo', nombre:'Claudia Vera', cargo:'Sra.', email:'cvera@mintrab.gob.cl', tel:'+56 9 1111 0008'},
+  {id:'medioambiente', username:'medioambiente', pass:'seremi123', rol:'seremi', seremiId:'medioambiente', nombre:'Valentina Soto', cargo:'Dra.', email:'vsoto@mma.gob.cl', tel:'+56 9 1111 0009'},
+  {id:'energia', username:'energia', pass:'seremi123', rol:'seremi', seremiId:'energia', nombre:'Cristóbal Ramos', cargo:'Ing.', email:'cramos@energia.gob.cl', tel:'+56 9 1111 0010'},
+  {id:'economia', username:'economia', pass:'seremi123', rol:'seremi', seremiId:'economia', nombre:'Fernanda Lagos', cargo:'Mg.', email:'flagos@economia.cl', tel:'+56 9 1111 0011'},
+  {id:'mineria', username:'mineria', pass:'seremi123', rol:'seremi', seremiId:'mineria', nombre:'Jorge Espinoza', cargo:'Ing.', email:'jespinoza@minmineria.cl', tel:'+56 9 1111 0012'},
+  {id:'desarrollosocial', username:'desarrollosocial', pass:'seremi123', rol:'seremi', seremiId:'desarrollosocial', nombre:'Patricia Muñoz', cargo:'Sra.', email:'pmunoz@mdsf.gob.cl', tel:'+56 9 1111 0013'},
+  {id:'justicia', username:'justicia', pass:'seremi123', rol:'seremi', seremiId:'justicia', nombre:'Nelson Tapia', cargo:'Abg.', email:'ntapia@minjusticia.cl', tel:'+56 9 1111 0014'},
+  {id:'interior', username:'interior', pass:'seremi123', rol:'seremi', seremiId:'interior', nombre:'Mauricio Flores', cargo:'Sr.', email:'mflores@interior.gob.cl', tel:'+56 9 1111 0015'},
+  {id:'cultura', username:'cultura', pass:'seremi123', rol:'seremi', seremiId:'cultura', nombre:'Isabel Contreras', cargo:'Sra.', email:'icontreras@cultura.gob.cl', tel:'+56 9 1111 0016'},
+  {id:'ciencia', username:'ciencia', pass:'seremi123', rol:'seremi', seremiId:'ciencia', nombre:'Andrés Bravo', cargo:'Dr.', email:'abravo@minciencia.gob.cl', tel:'+56 9 1111 0017'},
+  {id:'deporte', username:'deporte', pass:'seremi123', rol:'seremi', seremiId:'deporte', nombre:'Lucas Herrera', cargo:'Prof.', email:'lherrera@ind.cl', tel:'+56 9 1111 0018'},
+  {id:'mujer', username:'mujer', pass:'seremi123', rol:'seremi', seremiId:'mujer', nombre:'Andrea Castro', cargo:'Sra.', email:'acastro@sernameg.gob.cl', tel:'+56 9 1111 0019'},
+];
+
+// ═══════════════════════════════════════════════════════
+//  SEREMIS DATA
+// ═══════════════════════════════════════════════════════
+let SD = [
+  {id:'salud',sector:'salud',nombre:'SEREMI de Salud',c1:'#e85454',c2:'#c93a3a',visitas:8,contactos:52,prensa:17,proyectos:5,comunas:['Talca','Curicó','Linares','Molina','Cauquenes'],descripProyectos:[{title:'Plan Salud Mental Post-Pandemia',meta:'Ago. 2025',estado:'En ejecución'},{title:'Red Urgencias Rurales Maule Sur',meta:'Dic. 2025',estado:'Licitación'},{title:'Vacunación Bivalente Adulto Mayor',meta:'Continuo',estado:'Activo'}],nudos:[{title:'Déficit de médicos especialistas',desc:'Faltan 18 especialistas. Concursos desiertos por 3 períodos.',urgencia:'Alta'},{title:'Lista de espera GES crítica',desc:'Tiempo promedio oncología supera 120 días.',urgencia:'Alta'}],temas:[{tema:'Salud mental rural',prioridad:'Alta'},{tema:'Telemedicina en comunas alejadas',prioridad:'Media'}],agenda:[{fecha:'2026-03-15',texto:'Lanzamiento Centro Salud Mental, Talca',cat:'Inauguración'},{fecha:'2026-04-10',texto:'Campaña vacunación invierno',cat:'Campaña'}],prensaItems:[{titular:'SEREMI Salud anuncia nuevo CESFAM en Curepto',medio:'El Centro',tono:'pos',fecha:'2026-02-05'},{titular:'Alertan por aumento de casos respiratorios',medio:'La Prensa Austral',tono:'neu',fecha:'2026-01-28'}]},
+  {id:'educacion',sector:'educacion',nombre:'SEREMI de Educación',c1:'#3a7bd5',c2:'#2a5ea8',visitas:11,contactos:78,prensa:21,proyectos:7,comunas:['Talca','Curicó','Linares','Parral','San Clemente'],descripProyectos:[{title:'Inclusión Digital Escolar',meta:'Jun. 2025',estado:'En ejecución'},{title:'Mejoramiento 12 Escuelas',meta:'Nov. 2025',estado:'En ejecución'}],nudos:[{title:'Baja matrícula comunas rurales',desc:'Riesgo cierre 4 escuelas.',urgencia:'Alta'},{title:'Déficit docente Matemáticas',desc:'Concursos sin postulantes.',urgencia:'Media'}],temas:[{tema:'Educación técnica dual',prioridad:'Alta'},{tema:'Conectividad escolar rural',prioridad:'Alta'}],agenda:[{fecha:'2026-03-03',texto:'Inicio año escolar — operativo matrícula tardía',cat:'Operativo'},{fecha:'2026-05-20',texto:'Feria vocacional EMTP, Curicó',cat:'Evento'}],prensaItems:[{titular:'Nuevo equipamiento tecnológico para 40 escuelas rurales',medio:'Maule Noticias',tono:'pos',fecha:'2026-02-12'},{titular:'Critican burocracia en subvenciones',medio:'El Radar',tono:'neg',fecha:'2026-01-30'}]},
+  {id:'obras',sector:'obras',nombre:'SEREMI MOP',c1:'#f59e0b',c2:'#d97706',visitas:6,contactos:41,prensa:14,proyectos:9,comunas:['Talca','Linares','Constitución','Retiro','Colbún'],descripProyectos:[{title:'Pavimentación Ruta M-60',meta:'Jun. 2025',estado:'Licitación'},{title:'Plan Borde Costero Constitución',meta:'Dic. 2025',estado:'Diseño'}],nudos:[{title:'Retraso licitación por impugnaciones',desc:'Obras Ruta M-46. Retraso 4 meses.',urgencia:'Media'}],temas:[{tema:'Conectividad vial costera',prioridad:'Alta'}],agenda:[{fecha:'2026-04-01',texto:'Inicio obras pavimentación M-60',cat:'Inicio Obras'},{fecha:'2026-06-15',texto:'Inauguración paso bajo nivel Linares',cat:'Inauguración'}],prensaItems:[{titular:'MOP acelera trabajos en rutas afectadas por lluvias',medio:'La Prensa Austral',tono:'pos',fecha:'2026-02-01'}]},
+  {id:'agricultura',sector:'agricultura',nombre:'SEREMI Agricultura',c1:'#22c55e',c2:'#16a34a',visitas:9,contactos:63,prensa:12,proyectos:6,comunas:['Talca','San Javier','Constitución','Maule','Curepto'],descripProyectos:[{title:'Apoyo Pequeños Agricultores Sequía',meta:'Jun. 2025',estado:'Activo'},{title:'Reconversión Fruticultura Secano',meta:'Dic. 2025',estado:'Formulación'}],nudos:[{title:'Crisis hídrica secano costero',desc:'Déficit hídrico severo en 3 comunas.',urgencia:'Alta'},{title:'Merma productiva cereales',desc:'Pérdidas del 30-45% en trigo y maíz.',urgencia:'Alta'}],temas:[{tema:'Seguro agrícola y cambio climático',prioridad:'Alta'},{tema:'Riego eficiente para pequeños productores',prioridad:'Media'}],agenda:[{fecha:'2026-03-20',texto:'Entrega kits de riego INDAP',cat:'Entrega'},{fecha:'2026-05-15',texto:'Feria Agrícola Regional, Talca',cat:'Evento'}],prensaItems:[{titular:'Gobierno entrega bonos de emergencia a agricultores',medio:'AgriMaule',tono:'pos',fecha:'2026-02-10'},{titular:'Pequeños productores denuncian trabas INDAP',medio:'El Centro',tono:'neg',fecha:'2026-01-27'}]},
+  {id:'vivienda',sector:'vivienda',nombre:'SEREMI Vivienda',c1:'#8b5cf6',c2:'#6d28d9',visitas:5,contactos:38,prensa:9,proyectos:4,comunas:['Talca','Curicó','Linares','Maule'],descripProyectos:[{title:'DS49 — Condominios Sociales Talca',meta:'Dic. 2025',estado:'Construcción'}],nudos:[{title:'Listas de espera DS49 críticas',desc:'4.200 familias en lista. Sin nuevos llamados.',urgencia:'Alta'}],temas:[{tema:'Vivienda social en zonas de riesgo',prioridad:'Alta'}],agenda:[{fecha:'2026-04-10',texto:'Entrega 80 viviendas DS49, Curicó',cat:'Entrega Viviendas'}],prensaItems:[{titular:'SEREMI Vivienda anuncia 200 soluciones habitacionales',medio:'Maule Noticias',tono:'pos',fecha:'2026-02-08'}]},
+  {id:'transporte',sector:'transporte',nombre:'SEREMI Transporte',c1:'#06b6d4',c2:'#0891b2',visitas:4,contactos:25,prensa:6,proyectos:3,comunas:['Talca','Curicó','Linares'],descripProyectos:[{title:'Plan Movilidad Urbana Talca',meta:'Jun. 2025',estado:'Diseño'}],nudos:[{title:'Déficit cobertura rural',desc:'12 recorridos suspendidos.',urgencia:'Media'}],temas:[{tema:'Electromovilidad en flotas regionales',prioridad:'Media'}],agenda:[{fecha:'2026-06-01',texto:'Licitación transporte público Talca',cat:'Licitación'}],prensaItems:[{titular:'Se estudia nuevo corredor de transporte en Talca',medio:'El Centro',tono:'neu',fecha:'2026-01-29'}]},
+  {id:'bienes',sector:'bienes',nombre:'SEREMI Bienes Nacionales',c1:'#ec4899',c2:'#db2777',visitas:3,contactos:19,prensa:5,proyectos:2,comunas:['Talca','San Javier','Constitución'],descripProyectos:[{title:'Catastro Propiedades Fiscales Costeras',meta:'Sep. 2025',estado:'En ejecución'}],nudos:[{title:'Ocupación ilegal en playas',desc:'Aumento en temporada estival.',urgencia:'Media'}],temas:[{tema:'Playas de uso público',prioridad:'Normal'}],agenda:[{fecha:'2026-05-10',texto:'Entrega escrituras Comunidades Pehuenche',cat:'Entrega Títulos'}],prensaItems:[{titular:'Bienes Nacionales inicia catastro litoral del Maule',medio:'El Radar',tono:'neu',fecha:'2026-01-25'}]},
+  {id:'trabajo',sector:'trabajo',nombre:'SEREMI Trabajo',c1:'#f97316',c2:'#ea580c',visitas:7,contactos:45,prensa:8,proyectos:4,comunas:['Talca','Curicó','Linares','Parral'],descripProyectos:[{title:'Programa +Capaz Mujeres Maule',meta:'Jun. 2025',estado:'Activo'}],nudos:[{title:'Alta informalidad laboral temporero',desc:'38% sin contrato.',urgencia:'Alta'},{title:'Accidentes laborales agroindustria',desc:'Aumento del 18%.',urgencia:'Media'}],temas:[{tema:'Brecha salarial género agroindustria',prioridad:'Alta'}],agenda:[{fecha:'2026-03-10',texto:'Operativo fiscalización packing Curicó',cat:'Fiscalización'},{fecha:'2026-06-20',texto:'Graduación +Capaz, Talca',cat:'Ceremonia'}],prensaItems:[{titular:'SEREMI Trabajo intensifica fiscalizaciones en temporada agrícola',medio:'La Prensa Austral',tono:'pos',fecha:'2026-02-15'},{titular:'Denuncian incumplimientos laborales en packing',medio:'Maule Noticias',tono:'neg',fecha:'2026-01-26'}]},
+  {id:'medioambiente',sector:'medioambiente',nombre:'SEREMI Medio Ambiente',c1:'#10b981',c2:'#059669',visitas:5,contactos:33,prensa:10,proyectos:4,comunas:['Talca','Constitución','Empedrado','San Javier'],descripProyectos:[{title:'Plan Descontaminación Talca-Maule',meta:'Dic. 2025',estado:'En ejecución'}],nudos:[{title:'Superación normas PM2.5',desc:'Talca y Curicó superan norma en invierno.',urgencia:'Alta'},{title:'Contaminación hídrica río Loncomilla',desc:'Efluentes sin tratamiento.',urgencia:'Media'}],temas:[{tema:'Calefacción alternativa y fogones',prioridad:'Alta'}],agenda:[{fecha:'2026-04-01',texto:'Inicio restricción vehicular Talca',cat:'Regulación'},{fecha:'2026-06-01',texto:'Campaña recambio calefactores',cat:'Campaña'}],prensaItems:[{titular:'SEREMI Medio Ambiente alerta por contaminación en invierno',medio:'El Centro',tono:'neg',fecha:'2026-02-10'},{titular:'Plan de descontaminación avanza',medio:'Maule Noticias',tono:'pos',fecha:'2026-01-29'}]},
+  {id:'energia',sector:'energia',nombre:'SEREMI Energía',c1:'#eab308',c2:'#ca8a04',visitas:4,contactos:28,prensa:7,proyectos:3,comunas:['Talca','Linares','Parral','Curicó'],descripProyectos:[{title:'Techos Solares Viviendas Sociales',meta:'Sep. 2025',estado:'Licitación'}],nudos:[{title:'Cortes reiterados comunas rurales',desc:'Parral y Retiro con más de 12 cortes graves.',urgencia:'Alta'}],temas:[{tema:'Energías renovables para agricultores',prioridad:'Alta'}],agenda:[{fecha:'2026-05-15',texto:'Lanzamiento techos solares, 200 familias',cat:'Lanzamiento'}],prensaItems:[{titular:'Gobierno avanza en paneles solares en viviendas del Maule',medio:'AgriMaule',tono:'pos',fecha:'2026-02-08'},{titular:'Vecinos de Parral denuncian cortes de luz reiterados',medio:'La Prensa Austral',tono:'neg',fecha:'2026-01-28'}]},
+  {id:'economia',sector:'economia',nombre:'SEREMI Economía',c1:'#64748b',c2:'#475569',visitas:6,contactos:47,prensa:11,proyectos:5,comunas:['Talca','Curicó','Linares','Constitución'],descripProyectos:[{title:'Fondo Apoyo PYMES Post-Sequía',meta:'Jun. 2025',estado:'Activo'}],nudos:[{title:'Baja adopción créditos FOGAPE',desc:'Solo 23% de PYMES elegibles accedió.',urgencia:'Media'}],temas:[{tema:'Turismo rural como motor económico',prioridad:'Media'}],agenda:[{fecha:'2026-04-20',texto:'Rueda de negocios PYMES Maule',cat:'Evento'}],prensaItems:[{titular:'SEREMI Economía presenta plan de reactivación PYMES',medio:'Maule Noticias',tono:'pos',fecha:'2026-02-05'}]},
+  {id:'mineria',sector:'mineria',nombre:'SEREMI Minería',c1:'#78716c',c2:'#57534e',visitas:2,contactos:14,prensa:3,proyectos:2,comunas:['Talca','Linares'],descripProyectos:[{title:'Registro Faenas Mineras Artesanales',meta:'Sep. 2025',estado:'En ejecución'}],nudos:[{title:'Informalidad minería artesanal',desc:'45 faenas informales sin registro.',urgencia:'Alta'}],temas:[{tema:'Formalización minería artesanal',prioridad:'Alta'}],agenda:[{fecha:'2026-06-15',texto:'Operativo fiscalización faenas artesanales',cat:'Fiscalización'}],prensaItems:[{titular:'SEREMI Minería llama a regularizar faenas en el Maule',medio:'El Radar',tono:'neu',fecha:'2026-01-27'}]},
+  {id:'desarrollosocial',sector:'desarrollosocial',nombre:'SEREMI Desarrollo Social',c1:'#a855f7',c2:'#9333ea',visitas:10,contactos:82,prensa:15,proyectos:6,comunas:['Talca','Curicó','Linares','Parral','Cauquenes','Molina'],descripProyectos:[{title:'Actualización RSH Masiva',meta:'Jun. 2025',estado:'Activo'},{title:'Programa Calle Maule',meta:'Continuo',estado:'Activo'}],nudos:[{title:'Rezago RSH comunas rurales',desc:'12 municipios bajo 40% actualizados.',urgencia:'Alta'},{title:'Aumento personas en calle',desc:'Incremento 22% respecto a 2023.',urgencia:'Alta'}],temas:[{tema:'Pobreza rural multidimensional',prioridad:'Alta'},{tema:'Adultos mayores vulnerables solos',prioridad:'Alta'}],agenda:[{fecha:'2026-03-10',texto:'Operativo actualización RSH — 6 comunas',cat:'Operativo'},{fecha:'2026-06-30',texto:'Entrega resultados Casen 2024 región',cat:'Presentación'}],prensaItems:[{titular:'SEREMI Desarrollo Social presenta programa para familias vulnerables',medio:'El Centro',tono:'pos',fecha:'2026-02-12'},{titular:'Reportan aumento de personas en situación de calle en Talca',medio:'Maule Noticias',tono:'neg',fecha:'2026-02-01'}]},
+  {id:'justicia',sector:'justicia',nombre:'SEREMI Justicia',c1:'#0ea5e9',c2:'#0284c7',visitas:3,contactos:22,prensa:5,proyectos:3,comunas:['Talca','Curicó','Linares'],descripProyectos:[{title:'Centro Mediación Familiar Talca',meta:'Jun. 2025',estado:'En ejecución'}],nudos:[{title:'Sobrepoblación penal CCP Talca',desc:'130% de capacidad. Afecta rehabilitación.',urgencia:'Alta'}],temas:[{tema:'Acceso a la justicia en comunas rurales',prioridad:'Alta'}],agenda:[{fecha:'2026-05-20',texto:'Inauguración sala de mediación, Linares',cat:'Inauguración'}],prensaItems:[{titular:'Nuevo programa de mediación familiar en el Maule',medio:'El Centro',tono:'pos',fecha:'2026-01-30'}]},
+  {id:'interior',sector:'interior',nombre:'SEREMI Interior / Gobierno',c1:'#1d4ed8',c2:'#1e40af',visitas:14,contactos:95,prensa:24,proyectos:4,comunas:['Talca','Curicó','Linares','Parral','Cauquenes','Constitución','Molina','San Clemente'],descripProyectos:[{title:'Plan Seguridad Pública Maule 2025',meta:'Dic. 2025',estado:'En ejecución'}],nudos:[{title:'Aumento delitos contra la propiedad',desc:'Robos violentos rural +31% en 2024.',urgencia:'Alta'},{title:'Conflictos territoriales cordilleranos',desc:'Retiro y Colbún con conflictos por agua.',urgencia:'Media'}],temas:[{tema:'Seguridad pública zonas rurales',prioridad:'Alta'},{tema:'Participación ciudadana y cabildos',prioridad:'Media'}],agenda:[{fecha:'2026-03-05',texto:'Reunión intergubernamental provincial, Linares',cat:'Reunión'},{fecha:'2026-04-08',texto:'Mesa de seguridad pública Maule, Talca',cat:'Mesa técnica'}],prensaItems:[{titular:'Intendencia lanza plan de seguridad para comunas rurales',medio:'La Prensa Austral',tono:'pos',fecha:'2026-02-15'},{titular:'Vecinos exigen mayor presencia policial en zonas rurales',medio:'El Centro',tono:'neg',fecha:'2026-02-05'}]},
+  {id:'cultura',sector:'cultura',nombre:'SEREMI Cultura y las Artes',c1:'#f472b6',c2:'#ec4899',visitas:7,contactos:54,prensa:9,proyectos:5,comunas:['Talca','Curicó','Constitución','Linares','Parral'],descripProyectos:[{title:'Fondart Regional Maule 2025',meta:'Dic. 2025',estado:'Activo'},{title:'Biblioteca Pública Digital Maule',meta:'Jun. 2025',estado:'En ejecución'}],nudos:[{title:'Baja participación cultural rural',desc:'Comunas pequeñas sin acceso a programas CNCA.',urgencia:'Media'}],temas:[{tema:'Cultura y patrimonio rural',prioridad:'Media'},{tema:'Fomento lectura y bibliotecas',prioridad:'Normal'}],agenda:[{fecha:'2026-04-15',texto:'Lanzamiento convocatoria Fondart Regional',cat:'Convocatoria'},{fecha:'2026-11-15',texto:'Festival Cultural del Maule, Talca',cat:'Festival'}],prensaItems:[{titular:'Fondart Regional 2025 abre con más recursos para el Maule',medio:'Maule Noticias',tono:'pos',fecha:'2026-02-10'}]},
+  {id:'ciencia',sector:'ciencia',nombre:'SEREMI Ciencia y Tecnología',c1:'#6366f1',c2:'#4f46e5',visitas:4,contactos:31,prensa:6,proyectos:3,comunas:['Talca','Curicó','Linares'],descripProyectos:[{title:'Agenda CTI Maule 2025-2030',meta:'Dic. 2025',estado:'Formulación'}],nudos:[{title:'Escasa vinculación I+D universidad-empresa',desc:'Solo 8% de empresas colabora con centros de investigación.',urgencia:'Media'}],temas:[{tema:'Transferencia tecnológica para agroindustria',prioridad:'Alta'}],agenda:[{fecha:'2026-05-12',texto:'Semana de la Ciencia — Maule',cat:'Evento'},{fecha:'2026-09-15',texto:'Lanzamiento Agenda CTI Regional',cat:'Lanzamiento'}],prensaItems:[{titular:'SEREMI Ciencia impulsa agenda de innovación regional del Maule',medio:'El Radar',tono:'pos',fecha:'2026-02-01'}]},
+  {id:'deporte',sector:'deporte',nombre:'SEREMI Deporte',c1:'#f43f5e',c2:'#e11d48',visitas:8,contactos:58,prensa:11,proyectos:4,comunas:['Talca','Curicó','Linares','Parral','Cauquenes'],descripProyectos:[{title:'Juegos Deportivos Escolares Maule 2025',meta:'Nov. 2025',estado:'Formulación'},{title:'Mejoramiento Infraestructura Deportiva',meta:'Ago. 2025',estado:'En ejecución'}],nudos:[{title:'Infraestructura deportiva deteriorada',desc:'14 municipios con multicancha en mal estado.',urgencia:'Media'}],temas:[{tema:'Deporte escolar y cohesión social',prioridad:'Media'}],agenda:[{fecha:'2026-04-20',texto:'Campeonato regional atletismo escolar',cat:'Competencia'},{fecha:'2026-11-10',texto:'Juegos Deportivos Escolares Maule',cat:'Evento Mayor'}],prensaItems:[{titular:'Juegos Deportivos Escolares Maule 2025 prometen ser los más grandes',medio:'La Prensa Austral',tono:'pos',fecha:'2026-02-12'}]},
+  {id:'mujer',sector:'mujer',nombre:'SEREMI Mujer y Equidad de Género',c1:'#d946ef',c2:'#c026d3',visitas:9,contactos:67,prensa:13,proyectos:5,comunas:['Talca','Curicó','Linares','Parral','Cauquenes','Constitución'],descripProyectos:[{title:'Casa de Acogida Maule Sur (Linares)',meta:'Jun. 2025',estado:'Construcción'},{title:'Programa 4 a 7 — Cuidado Infantil',meta:'Continuo',estado:'Activo'},{title:'Ley Karin — Capacitación Servicios Públicos',meta:'Mar. 2025',estado:'En ejecución'}],nudos:[{title:'Femicidios y violencia intrafamiliar',desc:'3 femicidios en 2024. Centros de la Mujer sin capacidad.',urgencia:'Alta'},{title:'Brecha empleo formal zonas rurales',desc:'18 puntos de diferencia hombre-mujer.',urgencia:'Media'}],temas:[{tema:'Violencia de género zonas rurales',prioridad:'Alta'},{tema:'Mujeres rurales y emprendimiento',prioridad:'Media'}],agenda:[{fecha:'2026-03-08',texto:'Día Internacional de la Mujer — actividades región',cat:'Conmemoración'},{fecha:'2026-06-10',texto:'Inauguración Casa de Acogida Linares',cat:'Inauguración'}],prensaItems:[{titular:'SEREMI Mujer anuncia apertura de nueva Casa de Acogida',medio:'El Centro',tono:'pos',fecha:'2026-02-15'},{titular:'Organizaciones exigen más recursos para violencia de género',medio:'Maule Noticias',tono:'neg',fecha:'2026-02-08'}]},
+];
+
+// Sync seremi name from USERS into SD
+function syncSeremiNames(){
+  SD.forEach(s=>{
+    const u=USERS.find(u=>u.rol==='seremi'&&u.seremiId===s.id);
+    if(u) s.seremiName = (u.cargo?u.cargo+' ':'')+u.nombre;
+    else s.seremiName = s.nombre;
+  });
+}
+syncSeremiNames();
+
+// ═══════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════
+function doLogin(){
+  const user=document.getElementById('loginUser').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const found=USERS.find(u=>u.username===user&&u.pass===pass);
+  if(!found){document.getElementById('loginError').classList.add('visible');return;}
+  currentUser=found;
+  document.getElementById('loginError').classList.remove('visible');
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('mainScreen').classList.add('active');
+  setupForUser();
+}
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+function doLogout(){
+  currentUser=null;
+  document.getElementById('mainScreen').classList.remove('active');
+  document.getElementById('loginScreen').classList.add('active');
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  closeDetail();
+}
+
+function setupForUser(){
+  const u=currentUser;
+  // Reset period to 1 año at login
+  activePeriodMonths=12;
+  document.querySelectorAll('.p-chip').forEach(c=>c.classList.remove('active'));
+  document.querySelector('.p-chip[data-months="12"]')?.classList.add('active');
+  // Reset sector filter
+  activeFilter='all';
+  document.querySelectorAll('#filterGroup .f-chip').forEach(c=>c.classList.remove('active'));
+  document.querySelector('#filterGroup .f-chip[data-filter="all"]')?.classList.add('active');
+  // Header
+  document.getElementById('userAvatar').textContent=u.nombre.charAt(0).toUpperCase();
+  if(u.rol==='admin') document.getElementById('userAvatar').classList.add('admin');
+  document.getElementById('userName').textContent=u.nombre;
+  document.getElementById('userRole').textContent=u.rol==='admin'?'Administrador':'SEREMI';
+
+  if(u.rol==='admin'){
+    document.getElementById('adminTabs').style.display='flex';
+    document.getElementById('exportBar').style.display='flex';
+    document.getElementById('filterBar').style.display='flex';
+    document.getElementById('periodBar').style.display='flex';
+    document.getElementById('seremiBanner').style.display='none';
+    applyPeriodFilter();
+    renderAdminUsers();
+    // Populate seremi selector in modal
+    const sel=document.getElementById('recordSeremiId');
+    sel.innerHTML='<option value="">Seleccionar SEREMI...</option>';
+    SD.forEach(s=>sel.innerHTML+=`<option value="${s.id}">${s.nombre}</option>`);
+    document.getElementById('recordSeremiSelect').style.display='block';
+    // Populate user-modal seremi select
+    const usel=document.getElementById('u-seremi-id');
+    usel.innerHTML='<option value="">Seleccionar...</option>';
+    SD.forEach(s=>usel.innerHTML+=`<option value="${s.id}">${s.nombre}</option>`);
+    cUpdateBadge();
+  } else {
+    document.getElementById('adminTabs').style.display='none';
+    document.getElementById('exportBar').style.display='none';
+    document.getElementById('filterBar').style.display='none';
+    document.getElementById('periodBar').style.display='flex';
+    document.getElementById('seremiBanner').style.display='flex';
+    document.getElementById('recordSeremiSelect').style.display='none';
+    const s=SD.find(x=>x.id===u.seremiId);
+    if(s){
+      document.getElementById('seremiBannerAvatar').textContent=s.nombre.charAt(7)||'S';
+      document.getElementById('seremiBannerAvatar').style.background=`linear-gradient(135deg,${s.c1},${s.c2})`;
+      document.getElementById('seremiBannerName').textContent=s.nombre;
+      document.getElementById('seremiBannerMeta').textContent=`Responsable: ${u.cargo} ${u.nombre} · ${u.email}`;
+      applyPeriodFilter();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  TABS (admin)
+// ═══════════════════════════════════════════════════════
+function switchTab(name,el){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='contrataciones') cRenderTable();
+}
+
+// ═══════════════════════════════════════════════════════
+//  KPIs + RENDER
+// ═══════════════════════════════════════════════════════
+function updateKPIs(data){
+  document.getElementById('kpi-seremis').textContent=data.length;
+  document.getElementById('kpi-visitas').textContent=data.reduce((a,s)=>a+s.visitas,0);
+  document.getElementById('kpi-contactos').textContent=data.reduce((a,s)=>a+s.contactos,0);
+  document.getElementById('kpi-prensa').textContent=data.reduce((a,s)=>a+s.prensa,0);
+  document.getElementById('kpi-proyectos').textContent=data.reduce((a,s)=>a+s.proyectos,0);
+  document.getElementById('kpi-nudos').textContent=data.reduce((a,s)=>a+s.nudos.length,0);
+}
+
+function renderCards(data){
+  const grid=document.getElementById('seremisGrid');
+  grid.innerHTML='';
+  data.forEach(s=>{
+    const u=USERS.find(x=>x.rol==='seremi'&&x.seremiId===s.id);
+    const nameDisplay=u?(u.cargo+' '+u.nombre):s.nombre;
+    const c=document.createElement('div');
+    c.className='seremi-card';c.dataset.id=s.id;
+    const isOwn=currentUser?.rol==='seremi'&&currentUser?.seremiId===s.id;
+    c.innerHTML=`
+      <div class="card-stripe" style="background:linear-gradient(90deg,${s.c1},${s.c2})"></div>
+      <div class="card-head">
+        <div><div class="card-sector">${s.sector}</div><div class="card-name">${s.nombre}</div><div class="card-seremi-name">${nameDisplay}</div></div>
+        <div class="card-period">${getPeriodLabel()}</div>
+      </div>
+      <div class="card-metrics">
+        <div class="metric"><div class="metric-val orange">${s.visitas}</div><div class="metric-label">Visitas</div></div>
+        <div class="metric"><div class="metric-val blue">${s.contactos}</div><div class="metric-label">Personas</div></div>
+        <div class="metric"><div class="metric-val green">${s.prensa}</div><div class="metric-label">Prensa</div></div>
+        <div class="metric"><div class="metric-val ${s.nudos.length>1?'red':''}">${s.nudos.length}</div><div class="metric-label">Nudos</div></div>
+      </div>
+      <div class="card-actions">
+        <div class="btn-sm" onclick="openDetail('${s.id}',event)">Ver detalle</div>
+        ${isOwn||currentUser?.rol==='admin'?`<div class="btn-sm primary" onclick="openNewRecord(event,'${s.id}')">+ Registro</div>`:''}
+        <div class="btn-sm dl" onclick="exportSinglePDFById('${s.id}',event)">⬇ PDF</div>
+        <div class="btn-sm dlx" onclick="exportSingleExcelById('${s.id}',event)">⬇ XLS</div>
+      </div>`;
+    c.addEventListener('click',e=>{if(!e.target.classList.contains('btn-sm'))openDetail(s.id,e);});
+    grid.appendChild(c);
+  });
+  document.getElementById('cardCount').textContent=`${data.length} de ${SD.length} SEREMIs`;
+  updateKPIs(data);renderPrensa(data);renderTemas(data);renderAgenda(data);
+}
+
+function filterCards(el){
+  document.querySelectorAll('#filterGroup .f-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');activeFilter=el.dataset.filter;
+  applyPeriodFilter();closeDetail();
+}
+
+// ═══════════════════════════════════════════════════════
+//  DETAIL PANEL
+// ═══════════════════════════════════════════════════════
+function openDetail(id,e){
+  e&&e.stopPropagation();
+  const s=SD.find(x=>x.id===id);if(!s)return;
+  currentDetailId=id;
+  document.querySelectorAll('.seremi-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelector(`.seremi-card[data-id="${id}"]`)?.classList.add('selected');
+  const u=USERS.find(x=>x.rol==='seremi'&&x.seremiId===s.id);
+  document.getElementById('detailTitle').textContent=s.nombre;
+  document.getElementById('detailSub').textContent=`${u?u.cargo+' '+u.nombre:'—'} · ${s.comunas.length} comunas visitadas`;
+  document.getElementById('detailBody').innerHTML=`
+    <div class="detail-col">
+      <div class="detail-col-title">Proyectos Principales</div>
+      <div class="item-list">${s.descripProyectos.map(p=>`
+        <div class="item-row">
+          <div class="item-icon" style="background:${s.c1}25;color:${s.c1}">📌</div>
+          <div class="item-content"><div class="item-title">${p.title}</div><div class="item-meta">Meta: ${p.meta}</div></div>
+          <span class="item-badge ${p.estado==='En ejecución'||p.estado==='Activo'?'badge-green':p.estado==='Licitación'||p.estado==='Construcción'?'badge-orange':'badge-blue'}">${p.estado}</span>
+        </div>`).join('')}</div>
+      <div style="margin-top:13px"><div class="detail-col-title" style="margin-bottom:9px">Comunas Visitadas</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">${s.comunas.map(c=>`<span style="background:var(--bg3);border:1px solid var(--border);padding:3px 8px;border-radius:20px;font-size:10px;color:var(--text2)">${c}</span>`).join('')}</div>
+      </div>
+    </div>
+    <div class="detail-col">
+      <div class="detail-col-title">Nudos Críticos</div>
+      ${s.nudos.map(n=>`<div class="nodo"><div class="nodo-title">⚠ ${n.title} <span style="font-size:9px;opacity:.7">[${n.urgencia||''}]</span></div><div class="nodo-desc">${n.desc}</div></div>`).join('')}
+      <div style="margin-top:13px"><div class="detail-col-title" style="margin-bottom:9px">Propuesta de Temas</div>
+        <div class="item-list">${(s.temas||[]).map(t=>`<div class="item-row"><div class="item-icon" style="background:rgba(232,160,58,.12);color:var(--accent)">💡</div><div class="item-content"><div class="item-title">${t.tema||t}</div>${t.prioridad?`<div class="item-meta">Prioridad: ${t.prioridad}</div>`:''}</div></div>`).join('')}</div>
+      </div>
+    </div>
+    <div class="detail-col">
+      <div class="detail-col-title">Agenda de Hitos</div>
+      ${(s.agenda||[]).map(a=>`<div class="hito"><div class="hito-date">${fmtDate(a.fecha)}</div><div><div class="hito-text">${a.texto}</div><div class="hito-cat">${a.cat}</div></div></div>`).join('')}
+      <div style="margin-top:13px"><div class="detail-col-title" style="margin-bottom:9px">Prensa Reciente</div>
+        ${(s.prensaItems||[]).map(p=>`<div class="item-row" style="margin-bottom:5px"><div style="width:7px;height:7px;border-radius:50%;background:${p.tono==='pos'?'var(--accent3)':p.tono==='neg'?'var(--danger)':'var(--text3)'};flex-shrink:0;margin-top:4px"></div><div class="item-content"><div class="item-title" style="font-size:10px">${p.titular}</div><div class="item-meta">${p.medio} · ${fmtDate(p.fecha)}</div></div></div>`).join('')}
+      </div>
+    </div>`;
+  const panel=document.getElementById('detailPanel');
+  panel.classList.add('open');
+  setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+function closeDetail(){document.getElementById('detailPanel').classList.remove('open');document.querySelectorAll('.seremi-card').forEach(c=>c.classList.remove('selected'));currentDetailId=null;}
+
+const DIAS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+function fmtDate(d){
+  if(!d)return '—';
+  if(typeof d==='string'&&d.includes('-')){
+    const parts=d.split('-');
+    const dt=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+    return `${DIAS[dt.getDay()]} ${dt.getDate()} ${MESES[dt.getMonth()]} ${dt.getFullYear()}`;
+  }
+  return d;
+}
+function fmtDateShort(d){
+  if(!d)return '—';
+  if(typeof d==='string'&&d.includes('-')){
+    const p=d.split('-');return `${parseInt(p[2])} ${MESES[parseInt(p[1])-1]} ${p[0]}`;
+  }
+  return d;
+}
+
+// ── PERIOD FILTER ──
+let activePeriodMonths=12; // default 1 año para que los datos demo sean visibles
+let periodStart=null; // Date object
+
+function filterPeriod(el){
+  document.querySelectorAll('.p-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  activePeriodMonths=parseInt(el.dataset.months);
+  applyPeriodFilter();
+  closeDetail();
+}
+
+function applyPeriodFilter(){
+  const now=new Date();
+  const start=new Date(now);
+  start.setMonth(start.getMonth()-activePeriodMonths);
+  periodStart=start;
+  // Update display
+  const rangeEl=document.getElementById('periodRangeDisplay');
+  if(rangeEl) rangeEl.textContent=`${fmtDateShort(start.toISOString().slice(0,10))} → ${fmtDateShort(now.toISOString().slice(0,10))}`;
+  const labels={1:'Último mes',3:'Últimos 3 meses',6:'Últimos 6 meses',12:'Último año'};
+  const periodBadge=document.getElementById('currentPeriod');
+  if(periodBadge) periodBadge.textContent=labels[activePeriodMonths]||'—';
+  const startStr=start.toISOString().slice(0,10);
+  const nowStr=now.toISOString().slice(0,10);
+  const filteredSD=getFilteredSD(startStr,nowStr);
+  // Apply sector filter (admin only)
+  let sectorFiltered=activeFilter==='all'?filteredSD:filteredSD.filter(s=>s.sector===activeFilter);
+  // If seremi, only show own
+  if(currentUser?.rol==='seremi'){
+    sectorFiltered=sectorFiltered.filter(s=>s.id===currentUser.seremiId);
+  }
+  renderCards(sectorFiltered);
+}
+
+function getPeriodLabel(){
+  const labels={1:'Últ. mes',3:'Últ. 3 meses',6:'Últ. 6 meses',12:'Últ. año'};
+  return labels[activePeriodMonths]||'—';
+}
+function getFilteredSD(startStr,nowStr){
+  // Calculate forward window: same span as backward (e.g. 1 año → muestra hasta 1 año adelante)
+  const now=new Date();
+  const future=new Date(now);
+  future.setMonth(future.getMonth()+activePeriodMonths);
+  const futureStr=future.toISOString().slice(0,10);
+
+  return SD.map(s=>{
+    // Prensa: solo noticias dentro del período pasado
+    const prensaFiltered=(s.prensaItems||[]).filter(item=>{
+      const f=item.fecha; if(!f) return true;
+      return f>=startStr&&f<=nowStr;
+    });
+    // Agenda: eventos desde el inicio del período hasta el futuro equivalente
+    const agendaFiltered=(s.agenda||[]).filter(item=>{
+      const f=item.fecha; if(!f) return true;
+      return f>=startStr&&f<=futureStr;
+    });
+    return {
+      ...s,
+      prensaItems:prensaFiltered,
+      agenda:agendaFiltered,
+      prensa:prensaFiltered.length>0?prensaFiltered.length:s.prensa,
+    };
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  PRENSA / TEMAS / AGENDA
+// ═══════════════════════════════════════════════════════
+function renderPrensa(data){
+  const all=data.flatMap(s=>(s.prensaItems||[]).map(p=>({...p,seremi:s.nombre.replace('SEREMI de ','').replace('SEREMI ','')})));
+  document.getElementById('prensaBody').innerHTML=all.map(p=>`
+    <tr><td class="prensa-title-cell">${p.titular}</td><td>${p.medio}</td>
+    <td><span class="seremi-tag">${p.seremi}</span></td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${fmtDate(p.fecha)}</td>
+    <td><span class="sentiment" style="background:${p.tono==='pos'?'var(--accent3)':p.tono==='neg'?'var(--danger)':'var(--text3)'}"></span>${p.tono==='pos'?'Positivo':p.tono==='neg'?'Negativo':'Neutro'}</td></tr>`).join('');
+}
+function renderTemas(data){
+  const all=data.flatMap(s=>(s.temas||[]).slice(0,1).map(t=>({tema:t.tema||t,prioridad:t.prioridad||'',seremi:s.nombre.replace('SEREMI de ','').replace('SEREMI ',''),c:s.c1})));
+  document.getElementById('temasContainer').innerHTML=all.map(t=>`
+    <div class="item-row" style="margin-bottom:6px">
+      <div class="item-icon" style="background:${t.c}22;color:${t.c};font-size:11px">💡</div>
+      <div class="item-content"><div class="item-title">${t.tema}</div><div class="item-meta">${t.seremi}${t.prioridad?' · '+t.prioridad:''}</div></div>
+    </div>`).join('');
+}
+function renderAgenda(data){
+  const all=data.flatMap(s=>(s.agenda||[]).map(a=>({...a,seremi:s.nombre.replace('SEREMI de ','').replace('SEREMI ','')})));
+  all.sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  document.getElementById('agendaContainer').innerHTML=all.slice(0,10).map(a=>`
+    <div class="hito">
+      <div class="hito-date">${fmtDate(a.fecha)}</div>
+      <div><div class="hito-text">${a.texto}</div><div class="hito-cat">${a.seremi} · ${a.cat}</div></div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODAL NUEVO REGISTRO
+// ═══════════════════════════════════════════════════════
+function openNewRecord(e,preSelectId){
+  if(e&&e.stopPropagation) e.stopPropagation();
+  // Pre-select seremi
+  if(preSelectId){
+    document.getElementById('recordSeremiId').value=preSelectId;
+  } else if(currentUser?.rol==='seremi'){
+    document.getElementById('recordSeremiId').value=currentUser.seremiId;
+  }
+  selectType('visita',document.querySelector('.type-card'));
+  document.getElementById('modalRecord').classList.add('open');
+}
+function selectType(type,el){
+  currentRecordType=type;
+  document.querySelectorAll('.type-card').forEach(c=>c.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.type-fields').forEach(f=>f.classList.remove('active'));
+  document.getElementById('fields-'+type)?.classList.add('active');
+}
+function selectUrgencia(val,el){
+  currentUrgencia=val;
+  document.querySelectorAll('.urgencia-btn').forEach(b=>{b.classList.remove('sel-alta','sel-media','sel-baja');});
+  el.classList.add(val==='Alta'?'sel-alta':val==='Media'?'sel-media':'sel-baja');
+}
+function selectTono(val,el){
+  currentTono=val;
+  ['pos','neu','neg'].forEach(t=>{document.getElementById('tono-'+t)?.classList.remove('sel-alta','sel-media','sel-baja');});
+  el.classList.add(val==='pos'?'sel-alta':val==='neu'?'sel-media':'sel-baja');
+}
+function saveRecord(){
+  // Determine target seremi
+  let sid=currentUser?.rol==='admin'?document.getElementById('recordSeremiId').value:currentUser?.seremiId;
+  if(!sid){alert('Selecciona una SEREMI');return;}
+  const s=SD.find(x=>x.id===sid);if(!s)return;
+  const type=currentRecordType;
+  if(type==='visita'){
+    const comuna=document.getElementById('v-comuna').value.trim();
+    if(!comuna){alert('Ingresa la comuna');return;}
+    if(!s.comunas.includes(comuna)) s.comunas.push(comuna);
+    s.visitas+=1;
+    const personas=parseInt(document.getElementById('v-personas').value)||0;
+    s.contactos+=personas;
+  } else if(type==='contacto'){
+    const personas=parseInt(document.getElementById('c-personas').value)||0;
+    s.contactos+=personas;
+  } else if(type==='prensa'){
+    const titular=document.getElementById('p-titular').value.trim();
+    if(!titular){alert('Ingresa el titular');return;}
+    s.prensaItems.push({titular,medio:document.getElementById('p-medio').value,tono:currentTono,fecha:document.getElementById('p-fecha').value||new Date().toISOString().slice(0,10)});
+    s.prensa+=1;
+  } else if(type==='proyecto'){
+    const title=document.getElementById('pr-nombre').value.trim();
+    if(!title){alert('Ingresa el nombre del proyecto');return;}
+    s.descripProyectos.push({title,meta:document.getElementById('pr-meta').value,estado:document.getElementById('pr-estado').value});
+    s.proyectos+=1;
+  } else if(type==='nudo'){
+    const title=document.getElementById('n-titulo').value.trim();
+    if(!title){alert('Ingresa el título');return;}
+    s.nudos.push({title,desc:document.getElementById('n-desc').value,urgencia:currentUrgencia});
+  } else if(type==='tema'){
+    const tema=document.getElementById('t-tema').value.trim();
+    if(!tema){alert('Ingresa el tema');return;}
+    s.temas.push({tema,prioridad:document.getElementById('t-prioridad').value});
+  } else if(type==='agenda'){
+    const texto=document.getElementById('a-desc').value.trim();
+    if(!texto){alert('Ingresa la descripción del hito');return;}
+    s.agenda.push({fecha:document.getElementById('a-fecha').value||new Date().toISOString().slice(0,10),texto,cat:document.getElementById('a-cat').value});
+  }
+  closeModal('modalRecord');
+  applyPeriodFilter();
+  if(currentDetailId===sid) openDetail(sid,null);
+  showToast(`✓ Registro guardado en ${s.nombre}`,'#2ec4a5');
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN USERS
+// ═══════════════════════════════════════════════════════
+function renderAdminUsers(){
+  const grid=document.getElementById('adminUsersGrid');
+  grid.innerHTML='';
+  USERS.forEach(u=>{
+    const seremiNombre=u.seremiId?SD.find(s=>s.id===u.seremiId)?.nombre:'—';
+    const card=document.createElement('div');
+    card.className='user-card';
+    card.innerHTML=`
+      <div class="user-card-top">
+        <div class="user-card-avatar" style="background:${u.rol==='admin'?'linear-gradient(135deg,#e8a03a,#c97a20)':'var(--accent2)'}">${u.nombre.charAt(0)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div class="user-card-name">${u.cargo?u.cargo+' ':''} ${u.nombre}</div>
+            <span class="user-card-role ${u.rol==='admin'?'role-admin':'role-seremi'}">${u.rol==='admin'?'Admin':'SEREMI'}</span>
+          </div>
+          <div class="user-card-seremi">${seremiNombre!=='—'?seremiNombre:u.rol==='admin'?'Administrador del sistema':''}</div>
+        </div>
+      </div>
+      <div class="user-card-meta">
+        <div class="user-meta-item">👤 <strong>${u.username}</strong></div>
+        ${u.email?`<div class="user-meta-item">✉ <strong>${u.email}</strong></div>`:''}
+        ${u.tel?`<div class="user-meta-item">📞 <strong>${u.tel}</strong></div>`:''}
+      </div>
+      <div class="user-card-actions">
+        <button class="btn btn-ghost" style="flex:1;font-size:11px" onclick="editUser('${u.id}')">✏ Editar</button>
+        ${u.id!=='admin'?`<button class="btn btn-danger2" style="font-size:11px" onclick="deleteUser('${u.id}')">🗑 Eliminar</button>`:''}
+      </div>`;
+    grid.appendChild(card);
+  });
+  // Add card
+  const addCard=document.createElement('div');
+  addCard.className='add-user-card';
+  addCard.innerHTML='<div class="add-user-card-icon">➕</div><div>Agregar usuario</div>';
+  addCard.onclick=openAddUser;
+  grid.appendChild(addCard);
+}
+function openAddUser(){
+  editingUserId=null;
+  document.getElementById('modalUserTitle').textContent='Agregar Usuario';
+  ['u-nombre','u-cargo','u-usuario','u-pass','u-email','u-tel'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('u-rol').value='seremi';
+  document.getElementById('u-seremi-id').value='';
+  document.getElementById('u-seremi-group').style.display='block';
+  document.getElementById('modalUser').classList.add('open');
+}
+function editUser(id){
+  const u=USERS.find(x=>x.id===id);if(!u)return;
+  editingUserId=id;
+  document.getElementById('modalUserTitle').textContent='Editar Usuario';
+  document.getElementById('u-nombre').value=u.nombre;
+  document.getElementById('u-cargo').value=u.cargo||'';
+  document.getElementById('u-usuario').value=u.username;
+  document.getElementById('u-pass').value=u.pass;
+  document.getElementById('u-email').value=u.email||'';
+  document.getElementById('u-tel').value=u.tel||'';
+  document.getElementById('u-rol').value=u.rol;
+  document.getElementById('u-seremi-id').value=u.seremiId||'';
+  toggleSeremiField();
+  document.getElementById('modalUser').classList.add('open');
+}
+function deleteUser(id){
+  if(!confirm('¿Eliminar este usuario?'))return;
+  USERS=USERS.filter(u=>u.id!==id);
+  syncSeremiNames();renderAdminUsers();renderCards(SD);
+  showToast('Usuario eliminado','#e85454');
+}
+function toggleSeremiField(){
+  const rol=document.getElementById('u-rol').value;
+  document.getElementById('u-seremi-group').style.display=rol==='seremi'?'block':'none';
+}
+function saveUser(){
+  const nombre=document.getElementById('u-nombre').value.trim();
+  const usuario=document.getElementById('u-usuario').value.trim();
+  const pass=document.getElementById('u-pass').value;
+  if(!nombre||!usuario||!pass){alert('Nombre, usuario y contraseña son obligatorios');return;}
+  const rol=document.getElementById('u-rol').value;
+  const seremiId=rol==='seremi'?document.getElementById('u-seremi-id').value:'';
+  if(rol==='seremi'&&!seremiId){alert('Selecciona la SEREMI asignada');return;}
+  if(editingUserId){
+    const u=USERS.find(x=>x.id===editingUserId);
+    if(u){u.nombre=nombre;u.cargo=document.getElementById('u-cargo').value.trim();u.username=usuario;u.pass=pass;u.email=document.getElementById('u-email').value;u.tel=document.getElementById('u-tel').value;u.rol=rol;u.seremiId=seremiId;}
+  } else {
+    const newId=usuario+'_'+Date.now();
+    USERS.push({id:newId,username:usuario,pass,rol,seremiId,nombre,cargo:document.getElementById('u-cargo').value.trim(),email:document.getElementById('u-email').value,tel:document.getElementById('u-tel').value});
+  }
+  syncSeremiNames();closeModal('modalUser');renderAdminUsers();renderCards(SD);
+  showToast('✓ Usuario guardado','#2ec4a5');
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODAL HELPERS
+// ═══════════════════════════════════════════════════════
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeModalOutside(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+function showToast(msg,bg='#2ec4a5'){const t=document.createElement('div');t.className='toast';t.style.background=bg;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3500);}
+
+// ═══════════════════════════════════════════════════════
+//  PDF
+// ═══════════════════════════════════════════════════════
+function buildPDF(doc,s){
+  const W=doc.internal.pageSize.getWidth(),m=18,cw=W-m*2;
+  const u=USERS.find(x=>x.rol==='seremi'&&x.seremiId===s.id);
+  doc.setFillColor(11,15,26);doc.rect(0,0,W,297,'F');
+  doc.setFillColor(21,30,46);doc.rect(0,0,W,26,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(232,237,245);doc.text(s.nombre,m,11);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(143,163,191);
+  doc.text(`Seremi/a: ${u?(u.cargo+' '+u.nombre):'—'}  ·  Período: Febrero 2026  ·  Región del Maule`,m,19);
+  let y=34;
+  const kpis=[{l:'Visitas',v:s.visitas},{l:'Personas/Eventos',v:s.contactos},{l:'Prensa',v:s.prensa},{l:'Proyectos',v:s.proyectos},{l:'Nudos',v:s.nudos.length}];
+  const bw=(cw-8*4)/5;
+  kpis.forEach((k,i)=>{const bx=m+i*(bw+8);doc.setFillColor(21,30,46);doc.roundedRect(bx,y,bw,18,2,2,'F');doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(232,237,245);doc.text(String(k.v),bx+bw/2,y+9,{align:'center'});doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(78,100,128);doc.text(k.l,bx+bw/2,y+15,{align:'center'});});
+  y+=26;
+  const sec=(t2,yy)=>{doc.setFillColor(21,30,46);doc.rect(m,yy,cw,7,'F');doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(58,123,213);doc.text(t2.toUpperCase(),m+3,yy+5);return yy+11;};
+  y=sec('Comunas Visitadas',y);doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(143,163,191);doc.text(s.comunas.join(' · '),m,y);y+=9;
+  y=sec('Proyectos Principales',y);
+  s.descripProyectos.forEach(p=>{doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(232,237,245);doc.text(`• ${p.title}`,m+2,y);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(143,163,191);doc.text(`  Meta: ${p.meta} · ${p.estado}`,m+2,y+5);y+=12;});y+=3;
+  y=sec('Nudos Críticos',y);
+  s.nudos.forEach(n=>{doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(232,84,84);doc.text(`⚠ ${n.title} [${n.urgencia||''}]`,m+2,y);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(143,163,191);const ls=doc.splitTextToSize(n.desc,cw-6);ls.forEach(l=>{doc.text(l,m+4,y+5);y+=5;});y+=8;});
+  y=sec('Propuesta de Temas',y);
+  (s.temas||[]).forEach(t=>{doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(232,160,58);doc.text(`→ ${t.tema||t}${t.prioridad?' ['+t.prioridad+']':''}`,m+2,y);y+=7;});y+=3;
+  y=sec('Agenda de Hitos',y);
+  (s.agenda||[]).forEach(a=>{doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(232,160,58);doc.text(fmtDate(a.fecha),m+2,y);doc.setFont('helvetica','normal');doc.setTextColor(232,237,245);doc.text(a.texto,m+30,y);doc.setFontSize(8);doc.setTextColor(78,100,128);doc.text(a.cat,m+30,y+5);y+=12;});y+=3;
+  y=sec('Prensa Reciente',y);
+  (s.prensaItems||[]).forEach(p=>{doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(232,237,245);doc.text(`• ${p.titular}`,m+2,y);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(143,163,191);const tono=p.tono==='pos'?'Positivo':p.tono==='neg'?'Negativo':'Neutro';doc.text(`  ${p.medio} · ${fmtDate(p.fecha)} · ${tono}`,m+2,y+5);y+=12;});
+  doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(78,100,128);doc.text(`Gobierno Regional del Maule · Generado el ${new Date().toLocaleDateString('es-CL')} · Uso interno`,m,289);
+}
+function exportSinglePDF(){if(!currentDetailId)return;exportSinglePDFById(currentDetailId,null);}
+function exportSinglePDFById(id,e){e&&e.stopPropagation();const s=SD.find(x=>x.id===id);if(!s)return;const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});buildPDF(doc,s);doc.save(`Informe_${s.nombre.replace(/[\s\/]+/g,'_')}_Feb2026.pdf`);showToast('⬇ PDF generado');}
+function exportAllPDF(){
+  const filtered=activeFilter==='all'?SD:SD.filter(s=>s.sector===activeFilter);
+  const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  doc.setFillColor(11,15,26);doc.rect(0,0,210,297,'F');doc.setFillColor(21,30,46);doc.rect(0,95,210,85,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(22);doc.setTextColor(232,237,245);doc.text('Informe de Reportería SEREMIs',105,120,{align:'center'});doc.text('Región del Maule',105,133,{align:'center'});
+  doc.setFont('helvetica','normal');doc.setFontSize(11);doc.setTextColor(143,163,191);doc.text('Período: Febrero 2026',105,146,{align:'center'});doc.text(`${filtered.length} SEREMIs incluidas`,105,154,{align:'center'});
+  doc.setFontSize(8);doc.setTextColor(78,100,128);doc.text(`Generado el ${new Date().toLocaleDateString('es-CL')}`,105,285,{align:'center'});
+  filtered.forEach(s=>{doc.addPage();buildPDF(doc,s);});
+  doc.save('Informe_Global_SEREMIs_Maule_Feb2026.pdf');showToast(`⬇ PDF Global generado`);
+}
+
+// ═══════════════════════════════════════════════════════
+//  EXCEL
+// ═══════════════════════════════════════════════════════
+function buildWorkbook(data){
+  const wb=XLSX.utils.book_new();
+  const ws1=XLSX.utils.json_to_sheet(data.map(s=>{const u=USERS.find(x=>x.rol==='seremi'&&x.seremiId===s.id);return{'SEREMI':s.nombre,'Seremi/a':u?(u.cargo+' '+u.nombre):'—','Visitas':s.visitas,'Personas/Eventos':s.contactos,'Prensa':s.prensa,'Proyectos':s.proyectos,'Nudos':s.nudos.length,'Comunas':s.comunas.join(', '),'Período':'Febrero 2026'};}));
+  ws1['!cols']=[{wch:30},{wch:22},{wch:9},{wch:15},{wch:9},{wch:11},{wch:9},{wch:40},{wch:14}];XLSX.utils.book_append_sheet(wb,ws1,'Resumen General');
+  const ws2=XLSX.utils.json_to_sheet(data.flatMap(s=>s.descripProyectos.map(p=>({'SEREMI':s.nombre,'Proyecto':p.title,'Meta':p.meta,'Estado':p.estado}))));
+  ws2['!cols']=[{wch:30},{wch:45},{wch:12},{wch:15}];XLSX.utils.book_append_sheet(wb,ws2,'Proyectos');
+  const ws3=XLSX.utils.json_to_sheet(data.flatMap(s=>s.nudos.map(n=>({'SEREMI':s.nombre,'Nudo Crítico':n.title,'Descripción':n.desc,'Urgencia':n.urgencia||''}))));
+  ws3['!cols']=[{wch:30},{wch:35},{wch:80},{wch:10}];XLSX.utils.book_append_sheet(wb,ws3,'Nudos Críticos');
+  const ws4=XLSX.utils.json_to_sheet(data.flatMap(s=>(s.prensaItems||[]).map(p=>({'SEREMI':s.nombre,'Titular':p.titular,'Medio':p.medio,'Fecha':fmtDate(p.fecha),'Tono':p.tono==='pos'?'Positivo':p.tono==='neg'?'Negativo':'Neutro'}))));
+  ws4['!cols']=[{wch:30},{wch:70},{wch:25},{wch:12},{wch:12}];XLSX.utils.book_append_sheet(wb,ws4,'Prensa');
+  const ws5=XLSX.utils.json_to_sheet(data.flatMap(s=>(s.agenda||[]).map(a=>({'SEREMI':s.nombre,'Fecha':fmtDate(a.fecha),'Hito':a.texto,'Categoría':a.cat}))));
+  ws5['!cols']=[{wch:30},{wch:14},{wch:60},{wch:20}];XLSX.utils.book_append_sheet(wb,ws5,'Agenda');
+  const ws6=XLSX.utils.json_to_sheet(data.flatMap(s=>(s.temas||[]).map(t=>({'SEREMI':s.nombre,'Tema':t.tema||t,'Prioridad':t.prioridad||''}))));
+  ws6['!cols']=[{wch:30},{wch:60},{wch:12}];XLSX.utils.book_append_sheet(wb,ws6,'Temas Propuestos');
+  return wb;
+}
+function exportAllExcel(){const f=activeFilter==='all'?SD:SD.filter(s=>s.sector===activeFilter);XLSX.writeFile(buildWorkbook(f),'Reporte_SEREMIs_Maule_Feb2026.xlsx');showToast('⬇ Excel exportado (6 hojas)');}
+function exportSingleExcel(){if(!currentDetailId)return;exportSingleExcelById(currentDetailId,null);}
+function exportSingleExcelById(id,e){e&&e.stopPropagation();const s=SD.find(x=>x.id===id);if(!s)return;XLSX.writeFile(buildWorkbook([s]),`Informe_${s.nombre.replace(/[\s\/]+/g,'_')}_Feb2026.xlsx`);showToast('⬇ Excel generado');}
+function exportPrensaExcel(){const all=SD.flatMap(s=>(s.prensaItems||[]).map(p=>({'SEREMI':s.nombre,'Titular':p.titular,'Medio':p.medio,'Fecha':fmtDate(p.fecha),'Tono':p.tono==='pos'?'Positivo':p.tono==='neg'?'Negativo':'Neutro'})));const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(all);ws['!cols']=[{wch:30},{wch:70},{wch:25},{wch:12},{wch:12}];XLSX.utils.book_append_sheet(wb,ws,'Prensa');XLSX.writeFile(wb,'Prensa_SEREMIs_Maule_Feb2026.xlsx');showToast('⬇ Excel Prensa');}
+function exportAgendaExcel(){const all=SD.flatMap(s=>(s.agenda||[]).map(a=>({'SEREMI':s.nombre,'Fecha':fmtDate(a.fecha),'Hito':a.texto,'Categoría':a.cat})));all.sort((a,b)=>a['Fecha'].localeCompare(b['Fecha']));const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(all);ws['!cols']=[{wch:30},{wch:14},{wch:60},{wch:20}];XLSX.utils.book_append_sheet(wb,ws,'Agenda');XLSX.writeFile(wb,'Agenda_SEREMIs_Maule_Feb2026.xlsx');showToast('⬇ Excel Agenda');}
+
+
+// ══════════════════════════════════════════════════════
+//  MÓDULO CONTRATACIONES
+// ══════════════════════════════════════════════════════
+let contrats = [
+  {id:1,seremiId:'salud',nombre:'María José Contreras',rut:'15.234.567-8',cargo:'Profesional Sectorial',grado:'Grado 10',tipo:'Honorarios',inicio:'2026-03-01',termino:'2026-12-31',monto:'1850000',financ:'Presupuesto SEREMI',just:'Refuerzo equipo epidemiológico para campaña invierno regional.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'salud',creadoEn:'2026-02-18'},
+  {id:2,seremiId:'educacion',nombre:'Carlos Fuentes Riquelme',rut:'12.876.543-2',cargo:'Analista de Datos',grado:'Grado 12',tipo:'Contrata',inicio:'2026-03-15',termino:'2026-12-31',monto:'1450000',financ:'Programa sectorial',just:'Apoyo al Sistema de Información Escolar regional (SIGE).',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-17',creadoPor:'educacion',creadoEn:'2026-02-10'},
+  {id:3,seremiId:'obras',nombre:'Sofía Espinoza Vera',rut:'16.123.456-7',cargo:'Ingeniero Vial',grado:'Grado 9',tipo:'Honorarios',inicio:'2026-04-01',termino:'2026-10-31',monto:'2100000',financ:'Transferencia GORE',just:'Supervisión obras puente Río Claro sector Talca.',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-20',creadoPor:'obras',creadoEn:'2026-02-14'},
+  {id:4,seremiId:'vivienda',nombre:'Lorena Tapia Muñoz',rut:'14.987.654-3',cargo:'Arquitecta Revisora',grado:'Grado 8',tipo:'Contrata',inicio:'2026-03-01',termino:'2027-02-28',monto:'1720000',financ:'Presupuesto SEREMI',just:'Revisión permisos y proyectos DS19 para sector rural.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'vivienda',creadoEn:'2026-02-21'},
+  {id:5,seremiId:'medioambiente',nombre:'Rodrigo Castro Ibáñez',rut:'17.345.678-4',cargo:'Inspector Ambiental',grado:'Grado 11',tipo:'Honorarios',inicio:'2026-03-15',termino:'2026-09-15',monto:'1350000',financ:'Presupuesto SEREMI',just:'Fiscalización norma SO2 cuenca Río Maule.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'medioambiente',creadoEn:'2026-02-22'},
+  {id:6,seremiId:'agricultura',nombre:'Camila Rojas Figueroa',rut:'13.654.321-K',cargo:'Técnico Agrícola',grado:'Nivel 2',tipo:'Honorarios',inicio:'2026-03-01',termino:'2026-06-30',monto:'980000',financ:'Programa sectorial',just:'Apoyo programa emergencia hídrica zona secana interior.',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-19',creadoPor:'agricultura',creadoEn:'2026-02-12'},
+];
+let cNextId=7, cFiltro='todos', cDetalleId=null;
+
+const CDIAS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const CMESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+function cFmtFecha(iso){if(!iso)return '—';const[y,m,d]=iso.split('-').map(Number);const dt=new Date(y,m-1,d);return `${CDIAS[dt.getDay()]} ${d} ${CMESES[m-1]} ${y}`;}
+function cFmtCorta(iso){if(!iso)return '—';const[y,m,d]=iso.split('-').map(Number);return `${d} ${CMESES[m-1]} ${y}`;}
+function cFmtMonto(m){if(!m)return '—';const n=parseInt(String(m).replace(/\D/g,''));return isNaN(n)?m:'$'+n.toLocaleString('es-CL');}
+function cSeremiNombre(id){const s=SD.find(x=>x.id===id);return s?s.nombre.replace('SEREMI de ','').replace('SEREMI ',''):id;}
+
+function cUpdateBadge(){
+  const pend=contrats.filter(c=>c.estado==='Pendiente').length;
+  const b=document.getElementById('vbBadge');
+  if(b){b.style.display=pend>0?'inline':'none';b.textContent=pend;}
+}
+
+function cRenderTable(){
+  const q=(document.getElementById('cSearch')?.value||'').toLowerCase();
+  let data=[...contrats];
+  if(currentUser?.rol==='seremi') data=data.filter(c=>c.seremiId===currentUser.seremiId);
+  const base=[...data];
+  if(cFiltro!=='todos') data=data.filter(c=>c.estado===cFiltro);
+  if(q) data=data.filter(c=>c.nombre.toLowerCase().includes(q)||c.rut.toLowerCase().includes(q)||c.cargo.toLowerCase().includes(q));
+
+  document.getElementById('cStatTotal').textContent=base.length;
+  document.getElementById('cStatPend').textContent=base.filter(c=>c.estado==='Pendiente').length;
+  document.getElementById('cStatApro').textContent=base.filter(c=>c.estado==='Aprobada').length;
+  document.getElementById('cTableCount').textContent=`${data.length} registro${data.length!==1?'s':''}`;
+  cUpdateBadge();
+
+  const tbody=document.getElementById('cTbody');
+  if(!data.length){
+    tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3)">Sin solicitudes${cFiltro!=='todos'?' con estado "'+cFiltro+'"':''}</td></tr>`;
+    return;
+  }
+  const esAdmin=currentUser?.rol==='admin';
+  tbody.innerHTML=data.map(c=>{
+    const pend=c.estado==='Pendiente';
+    const periodo=c.inicio&&c.termino?cFmtCorta(c.inicio)+' → '+cFmtCorta(c.termino):'—';
+    const acciones=esAdmin&&pend
+      ?`<div style="display:flex;gap:5px"><button class="btn-sm" onclick="cAbrirDetalle(${c.id},event)">👁 Ver</button><button class="btn-sm primary" onclick="cVbRapido(${c.id},event)">✅ VB</button></div>`
+      :`<button class="btn-sm" onclick="cAbrirDetalle(${c.id},event)">👁 Ver detalle</button>`;
+    return `<tr onclick="cAbrirDetalle(${c.id},event)">
+      <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3)">#${c.id}</td>
+      <td><div style="font-weight:600;font-size:12px;color:var(--text)">${c.nombre}</div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3)">${c.rut}</div></td>
+      <td><div style="font-size:11px;color:var(--text)">${c.cargo}</div><div style="font-size:10px;color:var(--text3)">${c.grado||''}</div></td>
+      <td><span style="background:var(--bg3);border:1px solid var(--border);padding:2px 9px;border-radius:5px;font-size:10px">${c.tipo}</span></td>
+      <td><span class="seremi-tag">${cSeremiNombre(c.seremiId)}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:10px;white-space:nowrap">${periodo}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent3)">${cFmtMonto(c.monto)}</td>
+      <td><span class="cbadge ${pend?'cpend':'capro'}">${pend?'Pendiente VB':'Aprobada'}</span></td>
+      <td onclick="event.stopPropagation()">${acciones}</td>
+    </tr>`;
+  }).join('');
+}
+
+function cFilterBy(el){
+  document.querySelectorAll('#cFilterChips .f-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active'); cFiltro=el.dataset.f; cRenderTable();
+}
+
+function openModalNueva(){
+  const esAdmin=currentUser?.rol==='admin';
+  const sf=document.getElementById('cAdminSeremiField');
+  sf.style.display=esAdmin?'block':'none';
+  if(esAdmin){
+    const sel=document.getElementById('cFSeremi');
+    sel.innerHTML='<option value="">Seleccionar SEREMI...</option>';
+    SD.forEach(s=>sel.innerHTML+=`<option value="${s.id}">${s.nombre}</option>`);
+  }
+  ['cFNombre','cFRut','cFCargo','cFGrado','cFInicio','cFTermino','cFMonto','cFJust'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('overlayNueva').classList.add('open');
+}
+
+function cGuardar(){
+  const esAdmin=currentUser?.rol==='admin';
+  const seremiId=esAdmin?document.getElementById('cFSeremi').value:currentUser?.seremiId;
+  const nombre=document.getElementById('cFNombre').value.trim();
+  const rut=document.getElementById('cFRut').value.trim();
+  const cargo=document.getElementById('cFCargo').value.trim();
+  const inicio=document.getElementById('cFInicio').value;
+  const termino=document.getElementById('cFTermino').value;
+  const monto=document.getElementById('cFMonto').value.trim();
+  const just=document.getElementById('cFJust').value.trim();
+  if(esAdmin&&!seremiId){alert('Selecciona una SEREMI');return;}
+  if(!nombre){alert('Ingresa el nombre');return;}
+  if(!rut){alert('Ingresa el RUT');return;}
+  if(!cargo){alert('Ingresa el cargo');return;}
+  if(!inicio||!termino){alert('Ingresa fechas inicio y término');return;}
+  if(!monto){alert('Ingresa el monto mensual');return;}
+  if(!just){alert('Ingresa la justificación');return;}
+  contrats.push({id:cNextId++,seremiId,nombre,rut,cargo,
+    grado:document.getElementById('cFGrado').value.trim(),
+    tipo:document.getElementById('cFTipo').value,inicio,termino,monto,
+    financ:document.getElementById('cFFinanc').value,just,
+    estado:'Pendiente',vbQuien:'',vbFecha:'',
+    creadoPor:currentUser?.nombre,creadoEn:new Date().toISOString().slice(0,10)});
+  closeModal('overlayNueva');
+  cRenderTable();
+  showToast('📤 Solicitud enviada — Pendiente de VB del Administrador','#2ec4a5');
+}
+
+function cAbrirDetalle(id,e){
+  if(e)e.stopPropagation();
+  const c=contrats.find(x=>x.id===id);if(!c)return;
+  cDetalleId=id;
+  document.getElementById('cDetNombre').textContent=c.nombre;
+  document.getElementById('cDetSub').textContent=`${c.cargo}${c.grado?' · '+c.grado:''} · ${c.tipo} · ${cSeremiNombre(c.seremiId)}`;
+  const pend=c.estado==='Pendiente';
+  document.getElementById('cDetBadge').innerHTML=`<span class="cbadge ${pend?'cpend':'capro'}">${pend?'Pendiente VB':'Aprobada'}</span>`;
+  document.getElementById('cDetFields').innerHTML=`
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">RUT</div><div style="font-size:12px;color:var(--text);font-family:'JetBrains Mono',monospace">${c.rut}</div></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Tipo de contrato</div><div style="font-size:12px;color:var(--text)">${c.tipo}</div></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Fecha inicio</div><div style="font-size:12px;color:var(--text)">${cFmtFecha(c.inicio)}</div></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Fecha término</div><div style="font-size:12px;color:var(--text)">${cFmtFecha(c.termino)}</div></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Monto mensual</div><div style="font-size:16px;color:var(--accent3);font-family:'JetBrains Mono',monospace">${cFmtMonto(c.monto)}</div></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Financiamiento</div><div style="font-size:12px;color:var(--text)">${c.financ||'—'}</div></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px;grid-column:1/-1"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Justificación</div><div style="font-size:11px;color:var(--text2);line-height:1.65">${c.just||'—'}</div></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Solicitado por</div><div style="font-size:12px;color:var(--text)">${c.creadoPor}</div></div>
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:11px 15px"><div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:3px">Fecha solicitud</div><div style="font-size:12px;color:var(--text)">${cFmtFecha(c.creadoEn)}</div></div>
+  `;
+  document.getElementById('cDetVbSeremiDesc').textContent=`${cSeremiNombre(c.seremiId)} · ${c.creadoPor}`;
+  document.getElementById('cDetVbSeremiDate').textContent=cFmtFecha(c.creadoEn);
+  const dot=document.getElementById('cDetVbAdminDot');
+  const desc=document.getElementById('cDetVbAdminDesc');
+  const date=document.getElementById('cDetVbAdminDate');
+  if(!pend){
+    dot.style.cssText='width:34px;height:34px;border-radius:50%;border:2px solid var(--accent3);background:rgba(46,196,165,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0';
+    dot.textContent='✅';
+    desc.textContent=c.vbQuien||'Administrador Regional';
+    date.textContent=cFmtFecha(c.vbFecha); date.style.color='var(--accent3)';
+  } else {
+    dot.style.cssText='width:34px;height:34px;border-radius:50%;border:2px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0';
+    dot.textContent='⏳';
+    desc.textContent='Pendiente de Visto Bueno';
+    date.textContent='—'; date.style.color='var(--text3)';
+  }
+  document.getElementById('cVbActionBox').style.display=
+    currentUser?.rol==='admin'&&pend?'block':'none';
+  document.getElementById('overlayDetalle').classList.add('open');
+}
+
+function cDarVB(){
+  const c=contrats.find(x=>x.id===cDetalleId);if(!c)return;
+  c.estado='Aprobada';
+  c.vbQuien=currentUser?.nombre||'Administrador Regional';
+  c.vbFecha=new Date().toISOString().slice(0,10);
+  closeModal('overlayDetalle');
+  cRenderTable();
+  showToast('✅ Visto Bueno otorgado — Contratación aprobada','#2ec4a5');
+}
+function cVbRapido(id,e){if(e)e.stopPropagation();cDetalleId=id;cDarVB();}
+
+function outsideClose(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+
+function exportContratExcel(){
+  let data=[...contrats];
+  if(currentUser?.rol==='seremi')data=data.filter(c=>c.seremiId===currentUser.seremiId);
+  const rows=data.map(c=>({'#':c.id,'Nombre':c.nombre,'RUT':c.rut,'Cargo':c.cargo,'Grado':c.grado||'','Tipo':c.tipo,'SEREMI':cSeremiNombre(c.seremiId),'Fecha inicio':c.inicio,'Fecha término':c.termino,'Monto mensual':cFmtMonto(c.monto),'Financiamiento':c.financ,'Justificación':c.just,'Estado':c.estado,'VB por':c.vbQuien||'—','Fecha VB':c.vbFecha?cFmtFecha(c.vbFecha):'—','Solicitado por':c.creadoPor,'Fecha solicitud':cFmtFecha(c.creadoEn)}));
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=[{wch:4},{wch:28},{wch:14},{wch:28},{wch:10},{wch:14},{wch:22},{wch:13},{wch:13},{wch:15},{wch:18},{wch:50},{wch:12},{wch:24},{wch:14},{wch:22},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,ws,'Contrataciones');
+  XLSX.writeFile(wb,'Contrataciones_SEREMIs_Maule.xlsx');
+  showToast('⬇ Excel Contrataciones exportado','#2ec4a5');
+}
+// FIN MÓDULO CONTRATACIONES
+
+</script>
+</body>
+</html>
