@@ -1428,6 +1428,7 @@ function setupForUser(){
     cUpdateBadge();
   } else {
     document.getElementById('adminTabs').style.display='none';
+    document.getElementById('seremiTabs').style.display='flex';
     document.getElementById('exportBar').style.display='none';
     document.getElementById('filterBar').style.display='none';
     document.getElementById('periodBar').style.display='flex';
@@ -1441,6 +1442,7 @@ function setupForUser(){
       document.getElementById('seremiBannerMeta').textContent=`Responsable: ${u.cargo} ${u.nombre} · ${u.email}`;
       applyPeriodFilter();
     }
+    cUpdateBadge();
   }
 }
 
@@ -1934,6 +1936,9 @@ function cUpdateBadge(){
   const pend=contrats.filter(c=>c.estado==='Pendiente').length;
   const b=document.getElementById('vbBadge');
   if(b){b.style.display=pend>0?'inline':'none';b.textContent=pend;}
+  const pendSeremi=currentUser?.seremiId?contrats.filter(c=>c.estado==='Pendiente'&&c.seremiId===currentUser.seremiId).length:0;
+  const bs=document.getElementById('vbBadgeSeremi');
+  if(bs){bs.style.display=pendSeremi>0?'inline':'none';bs.textContent=pendSeremi;}
 }
 
 function cRenderTable(){
