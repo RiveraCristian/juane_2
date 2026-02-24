@@ -1353,27 +1353,22 @@ let USERS = [
 // ═══════════════════════════════════════════════════════
 //  SEREMIS DATA
 // ═══════════════════════════════════════════════════════
-let SD = [
-  {id:'salud',sector:'salud',nombre:'SEREMI de Salud',c1:'#e85454',c2:'#c93a3a',visitas:8,contactos:52,prensa:17,proyectos:5,comunas:['Talca','Curicó','Linares','Molina','Cauquenes'],descripProyectos:[{title:'Plan Salud Mental Post-Pandemia',meta:'Ago. 2025',estado:'En ejecución'},{title:'Red Urgencias Rurales Maule Sur',meta:'Dic. 2025',estado:'Licitación'},{title:'Vacunación Bivalente Adulto Mayor',meta:'Continuo',estado:'Activo'}],nudos:[{title:'Déficit de médicos especialistas',desc:'Faltan 18 especialistas. Concursos desiertos por 3 períodos.',urgencia:'Alta'},{title:'Lista de espera GES crítica',desc:'Tiempo promedio oncología supera 120 días.',urgencia:'Alta'}],temas:[{tema:'Salud mental rural',prioridad:'Alta'},{tema:'Telemedicina en comunas alejadas',prioridad:'Media'}],agenda:[{fecha:'2026-03-15',texto:'Lanzamiento Centro Salud Mental, Talca',cat:'Inauguración'},{fecha:'2026-04-10',texto:'Campaña vacunación invierno',cat:'Campaña'}],prensaItems:[{titular:'SEREMI Salud anuncia nuevo CESFAM en Curepto',medio:'El Centro',tono:'pos',fecha:'2026-02-05'},{titular:'Alertan por aumento de casos respiratorios',medio:'La Prensa Austral',tono:'neu',fecha:'2026-01-28'}]},
-  {id:'educacion',sector:'educacion',nombre:'SEREMI de Educación',c1:'#3a7bd5',c2:'#2a5ea8',visitas:11,contactos:78,prensa:21,proyectos:7,comunas:['Talca','Curicó','Linares','Parral','San Clemente'],descripProyectos:[{title:'Inclusión Digital Escolar',meta:'Jun. 2025',estado:'En ejecución'},{title:'Mejoramiento 12 Escuelas',meta:'Nov. 2025',estado:'En ejecución'}],nudos:[{title:'Baja matrícula comunas rurales',desc:'Riesgo cierre 4 escuelas.',urgencia:'Alta'},{title:'Déficit docente Matemáticas',desc:'Concursos sin postulantes.',urgencia:'Media'}],temas:[{tema:'Educación técnica dual',prioridad:'Alta'},{tema:'Conectividad escolar rural',prioridad:'Alta'}],agenda:[{fecha:'2026-03-03',texto:'Inicio año escolar — operativo matrícula tardía',cat:'Operativo'},{fecha:'2026-05-20',texto:'Feria vocacional EMTP, Curicó',cat:'Evento'}],prensaItems:[{titular:'Nuevo equipamiento tecnológico para 40 escuelas rurales',medio:'Maule Noticias',tono:'pos',fecha:'2026-02-12'},{titular:'Critican burocracia en subvenciones',medio:'El Radar',tono:'neg',fecha:'2026-01-30'}]},
-  {id:'obras',sector:'obras',nombre:'SEREMI MOP',c1:'#f59e0b',c2:'#d97706',visitas:6,contactos:41,prensa:14,proyectos:9,comunas:['Talca','Linares','Constitución','Retiro','Colbún'],descripProyectos:[{title:'Pavimentación Ruta M-60',meta:'Jun. 2025',estado:'Licitación'},{title:'Plan Borde Costero Constitución',meta:'Dic. 2025',estado:'Diseño'}],nudos:[{title:'Retraso licitación por impugnaciones',desc:'Obras Ruta M-46. Retraso 4 meses.',urgencia:'Media'}],temas:[{tema:'Conectividad vial costera',prioridad:'Alta'}],agenda:[{fecha:'2026-04-01',texto:'Inicio obras pavimentación M-60',cat:'Inicio Obras'},{fecha:'2026-06-15',texto:'Inauguración paso bajo nivel Linares',cat:'Inauguración'}],prensaItems:[{titular:'MOP acelera trabajos en rutas afectadas por lluvias',medio:'La Prensa Austral',tono:'pos',fecha:'2026-02-01'}]},
-  {id:'agricultura',sector:'agricultura',nombre:'SEREMI Agricultura',c1:'#22c55e',c2:'#16a34a',visitas:9,contactos:63,prensa:12,proyectos:6,comunas:['Talca','San Javier','Constitución','Maule','Curepto'],descripProyectos:[{title:'Apoyo Pequeños Agricultores Sequía',meta:'Jun. 2025',estado:'Activo'},{title:'Reconversión Fruticultura Secano',meta:'Dic. 2025',estado:'Formulación'}],nudos:[{title:'Crisis hídrica secano costero',desc:'Déficit hídrico severo en 3 comunas.',urgencia:'Alta'},{title:'Merma productiva cereales',desc:'Pérdidas del 30-45% en trigo y maíz.',urgencia:'Alta'}],temas:[{tema:'Seguro agrícola y cambio climático',prioridad:'Alta'},{tema:'Riego eficiente para pequeños productores',prioridad:'Media'}],agenda:[{fecha:'2026-03-20',texto:'Entrega kits de riego INDAP',cat:'Entrega'},{fecha:'2026-05-15',texto:'Feria Agrícola Regional, Talca',cat:'Evento'}],prensaItems:[{titular:'Gobierno entrega bonos de emergencia a agricultores',medio:'AgriMaule',tono:'pos',fecha:'2026-02-10'},{titular:'Pequeños productores denuncian trabas INDAP',medio:'El Centro',tono:'neg',fecha:'2026-01-27'}]},
-  {id:'vivienda',sector:'vivienda',nombre:'SEREMI Vivienda',c1:'#8b5cf6',c2:'#6d28d9',visitas:5,contactos:38,prensa:9,proyectos:4,comunas:['Talca','Curicó','Linares','Maule'],descripProyectos:[{title:'DS49 — Condominios Sociales Talca',meta:'Dic. 2025',estado:'Construcción'}],nudos:[{title:'Listas de espera DS49 críticas',desc:'4.200 familias en lista. Sin nuevos llamados.',urgencia:'Alta'}],temas:[{tema:'Vivienda social en zonas de riesgo',prioridad:'Alta'}],agenda:[{fecha:'2026-04-10',texto:'Entrega 80 viviendas DS49, Curicó',cat:'Entrega Viviendas'}],prensaItems:[{titular:'SEREMI Vivienda anuncia 200 soluciones habitacionales',medio:'Maule Noticias',tono:'pos',fecha:'2026-02-08'}]},
-  {id:'transporte',sector:'transporte',nombre:'SEREMI Transporte',c1:'#06b6d4',c2:'#0891b2',visitas:4,contactos:25,prensa:6,proyectos:3,comunas:['Talca','Curicó','Linares'],descripProyectos:[{title:'Plan Movilidad Urbana Talca',meta:'Jun. 2025',estado:'Diseño'}],nudos:[{title:'Déficit cobertura rural',desc:'12 recorridos suspendidos.',urgencia:'Media'}],temas:[{tema:'Electromovilidad en flotas regionales',prioridad:'Media'}],agenda:[{fecha:'2026-06-01',texto:'Licitación transporte público Talca',cat:'Licitación'}],prensaItems:[{titular:'Se estudia nuevo corredor de transporte en Talca',medio:'El Centro',tono:'neu',fecha:'2026-01-29'}]},
-  {id:'bienes',sector:'bienes',nombre:'SEREMI Bienes Nacionales',c1:'#ec4899',c2:'#db2777',visitas:3,contactos:19,prensa:5,proyectos:2,comunas:['Talca','San Javier','Constitución'],descripProyectos:[{title:'Catastro Propiedades Fiscales Costeras',meta:'Sep. 2025',estado:'En ejecución'}],nudos:[{title:'Ocupación ilegal en playas',desc:'Aumento en temporada estival.',urgencia:'Media'}],temas:[{tema:'Playas de uso público',prioridad:'Normal'}],agenda:[{fecha:'2026-05-10',texto:'Entrega escrituras Comunidades Pehuenche',cat:'Entrega Títulos'}],prensaItems:[{titular:'Bienes Nacionales inicia catastro litoral del Maule',medio:'El Radar',tono:'neu',fecha:'2026-01-25'}]},
-  {id:'trabajo',sector:'trabajo',nombre:'SEREMI Trabajo',c1:'#f97316',c2:'#ea580c',visitas:7,contactos:45,prensa:8,proyectos:4,comunas:['Talca','Curicó','Linares','Parral'],descripProyectos:[{title:'Programa +Capaz Mujeres Maule',meta:'Jun. 2025',estado:'Activo'}],nudos:[{title:'Alta informalidad laboral temporero',desc:'38% sin contrato.',urgencia:'Alta'},{title:'Accidentes laborales agroindustria',desc:'Aumento del 18%.',urgencia:'Media'}],temas:[{tema:'Brecha salarial género agroindustria',prioridad:'Alta'}],agenda:[{fecha:'2026-03-10',texto:'Operativo fiscalización packing Curicó',cat:'Fiscalización'},{fecha:'2026-06-20',texto:'Graduación +Capaz, Talca',cat:'Ceremonia'}],prensaItems:[{titular:'SEREMI Trabajo intensifica fiscalizaciones en temporada agrícola',medio:'La Prensa Austral',tono:'pos',fecha:'2026-02-15'},{titular:'Denuncian incumplimientos laborales en packing',medio:'Maule Noticias',tono:'neg',fecha:'2026-01-26'}]},
-  {id:'medioambiente',sector:'medioambiente',nombre:'SEREMI Medio Ambiente',c1:'#10b981',c2:'#059669',visitas:5,contactos:33,prensa:10,proyectos:4,comunas:['Talca','Constitución','Empedrado','San Javier'],descripProyectos:[{title:'Plan Descontaminación Talca-Maule',meta:'Dic. 2025',estado:'En ejecución'}],nudos:[{title:'Superación normas PM2.5',desc:'Talca y Curicó superan norma en invierno.',urgencia:'Alta'},{title:'Contaminación hídrica río Loncomilla',desc:'Efluentes sin tratamiento.',urgencia:'Media'}],temas:[{tema:'Calefacción alternativa y fogones',prioridad:'Alta'}],agenda:[{fecha:'2026-04-01',texto:'Inicio restricción vehicular Talca',cat:'Regulación'},{fecha:'2026-06-01',texto:'Campaña recambio calefactores',cat:'Campaña'}],prensaItems:[{titular:'SEREMI Medio Ambiente alerta por contaminación en invierno',medio:'El Centro',tono:'neg',fecha:'2026-02-10'},{titular:'Plan de descontaminación avanza',medio:'Maule Noticias',tono:'pos',fecha:'2026-01-29'}]},
-  {id:'energia',sector:'energia',nombre:'SEREMI Energía',c1:'#eab308',c2:'#ca8a04',visitas:4,contactos:28,prensa:7,proyectos:3,comunas:['Talca','Linares','Parral','Curicó'],descripProyectos:[{title:'Techos Solares Viviendas Sociales',meta:'Sep. 2025',estado:'Licitación'}],nudos:[{title:'Cortes reiterados comunas rurales',desc:'Parral y Retiro con más de 12 cortes graves.',urgencia:'Alta'}],temas:[{tema:'Energías renovables para agricultores',prioridad:'Alta'}],agenda:[{fecha:'2026-05-15',texto:'Lanzamiento techos solares, 200 familias',cat:'Lanzamiento'}],prensaItems:[{titular:'Gobierno avanza en paneles solares en viviendas del Maule',medio:'AgriMaule',tono:'pos',fecha:'2026-02-08'},{titular:'Vecinos de Parral denuncian cortes de luz reiterados',medio:'La Prensa Austral',tono:'neg',fecha:'2026-01-28'}]},
-  {id:'economia',sector:'economia',nombre:'SEREMI Economía',c1:'#64748b',c2:'#475569',visitas:6,contactos:47,prensa:11,proyectos:5,comunas:['Talca','Curicó','Linares','Constitución'],descripProyectos:[{title:'Fondo Apoyo PYMES Post-Sequía',meta:'Jun. 2025',estado:'Activo'}],nudos:[{title:'Baja adopción créditos FOGAPE',desc:'Solo 23% de PYMES elegibles accedió.',urgencia:'Media'}],temas:[{tema:'Turismo rural como motor económico',prioridad:'Media'}],agenda:[{fecha:'2026-04-20',texto:'Rueda de negocios PYMES Maule',cat:'Evento'}],prensaItems:[{titular:'SEREMI Economía presenta plan de reactivación PYMES',medio:'Maule Noticias',tono:'pos',fecha:'2026-02-05'}]},
-  {id:'mineria',sector:'mineria',nombre:'SEREMI Minería',c1:'#78716c',c2:'#57534e',visitas:2,contactos:14,prensa:3,proyectos:2,comunas:['Talca','Linares'],descripProyectos:[{title:'Registro Faenas Mineras Artesanales',meta:'Sep. 2025',estado:'En ejecución'}],nudos:[{title:'Informalidad minería artesanal',desc:'45 faenas informales sin registro.',urgencia:'Alta'}],temas:[{tema:'Formalización minería artesanal',prioridad:'Alta'}],agenda:[{fecha:'2026-06-15',texto:'Operativo fiscalización faenas artesanales',cat:'Fiscalización'}],prensaItems:[{titular:'SEREMI Minería llama a regularizar faenas en el Maule',medio:'El Radar',tono:'neu',fecha:'2026-01-27'}]},
-  {id:'desarrollosocial',sector:'desarrollosocial',nombre:'SEREMI Desarrollo Social',c1:'#a855f7',c2:'#9333ea',visitas:10,contactos:82,prensa:15,proyectos:6,comunas:['Talca','Curicó','Linares','Parral','Cauquenes','Molina'],descripProyectos:[{title:'Actualización RSH Masiva',meta:'Jun. 2025',estado:'Activo'},{title:'Programa Calle Maule',meta:'Continuo',estado:'Activo'}],nudos:[{title:'Rezago RSH comunas rurales',desc:'12 municipios bajo 40% actualizados.',urgencia:'Alta'},{title:'Aumento personas en calle',desc:'Incremento 22% respecto a 2023.',urgencia:'Alta'}],temas:[{tema:'Pobreza rural multidimensional',prioridad:'Alta'},{tema:'Adultos mayores vulnerables solos',prioridad:'Alta'}],agenda:[{fecha:'2026-03-10',texto:'Operativo actualización RSH — 6 comunas',cat:'Operativo'},{fecha:'2026-06-30',texto:'Entrega resultados Casen 2024 región',cat:'Presentación'}],prensaItems:[{titular:'SEREMI Desarrollo Social presenta programa para familias vulnerables',medio:'El Centro',tono:'pos',fecha:'2026-02-12'},{titular:'Reportan aumento de personas en situación de calle en Talca',medio:'Maule Noticias',tono:'neg',fecha:'2026-02-01'}]},
-  {id:'justicia',sector:'justicia',nombre:'SEREMI Justicia',c1:'#0ea5e9',c2:'#0284c7',visitas:3,contactos:22,prensa:5,proyectos:3,comunas:['Talca','Curicó','Linares'],descripProyectos:[{title:'Centro Mediación Familiar Talca',meta:'Jun. 2025',estado:'En ejecución'}],nudos:[{title:'Sobrepoblación penal CCP Talca',desc:'130% de capacidad. Afecta rehabilitación.',urgencia:'Alta'}],temas:[{tema:'Acceso a la justicia en comunas rurales',prioridad:'Alta'}],agenda:[{fecha:'2026-05-20',texto:'Inauguración sala de mediación, Linares',cat:'Inauguración'}],prensaItems:[{titular:'Nuevo programa de mediación familiar en el Maule',medio:'El Centro',tono:'pos',fecha:'2026-01-30'}]},
-  {id:'interior',sector:'interior',nombre:'SEREMI Interior / Gobierno',c1:'#1d4ed8',c2:'#1e40af',visitas:14,contactos:95,prensa:24,proyectos:4,comunas:['Talca','Curicó','Linares','Parral','Cauquenes','Constitución','Molina','San Clemente'],descripProyectos:[{title:'Plan Seguridad Pública Maule 2025',meta:'Dic. 2025',estado:'En ejecución'}],nudos:[{title:'Aumento delitos contra la propiedad',desc:'Robos violentos rural +31% en 2024.',urgencia:'Alta'},{title:'Conflictos territoriales cordilleranos',desc:'Retiro y Colbún con conflictos por agua.',urgencia:'Media'}],temas:[{tema:'Seguridad pública zonas rurales',prioridad:'Alta'},{tema:'Participación ciudadana y cabildos',prioridad:'Media'}],agenda:[{fecha:'2026-03-05',texto:'Reunión intergubernamental provincial, Linares',cat:'Reunión'},{fecha:'2026-04-08',texto:'Mesa de seguridad pública Maule, Talca',cat:'Mesa técnica'}],prensaItems:[{titular:'Intendencia lanza plan de seguridad para comunas rurales',medio:'La Prensa Austral',tono:'pos',fecha:'2026-02-15'},{titular:'Vecinos exigen mayor presencia policial en zonas rurales',medio:'El Centro',tono:'neg',fecha:'2026-02-05'}]},
-  {id:'cultura',sector:'cultura',nombre:'SEREMI Cultura y las Artes',c1:'#f472b6',c2:'#ec4899',visitas:7,contactos:54,prensa:9,proyectos:5,comunas:['Talca','Curicó','Constitución','Linares','Parral'],descripProyectos:[{title:'Fondart Regional Maule 2025',meta:'Dic. 2025',estado:'Activo'},{title:'Biblioteca Pública Digital Maule',meta:'Jun. 2025',estado:'En ejecución'}],nudos:[{title:'Baja participación cultural rural',desc:'Comunas pequeñas sin acceso a programas CNCA.',urgencia:'Media'}],temas:[{tema:'Cultura y patrimonio rural',prioridad:'Media'},{tema:'Fomento lectura y bibliotecas',prioridad:'Normal'}],agenda:[{fecha:'2026-04-15',texto:'Lanzamiento convocatoria Fondart Regional',cat:'Convocatoria'},{fecha:'2026-11-15',texto:'Festival Cultural del Maule, Talca',cat:'Festival'}],prensaItems:[{titular:'Fondart Regional 2025 abre con más recursos para el Maule',medio:'Maule Noticias',tono:'pos',fecha:'2026-02-10'}]},
-  {id:'ciencia',sector:'ciencia',nombre:'SEREMI Ciencia y Tecnología',c1:'#6366f1',c2:'#4f46e5',visitas:4,contactos:31,prensa:6,proyectos:3,comunas:['Talca','Curicó','Linares'],descripProyectos:[{title:'Agenda CTI Maule 2025-2030',meta:'Dic. 2025',estado:'Formulación'}],nudos:[{title:'Escasa vinculación I+D universidad-empresa',desc:'Solo 8% de empresas colabora con centros de investigación.',urgencia:'Media'}],temas:[{tema:'Transferencia tecnológica para agroindustria',prioridad:'Alta'}],agenda:[{fecha:'2026-05-12',texto:'Semana de la Ciencia — Maule',cat:'Evento'},{fecha:'2026-09-15',texto:'Lanzamiento Agenda CTI Regional',cat:'Lanzamiento'}],prensaItems:[{titular:'SEREMI Ciencia impulsa agenda de innovación regional del Maule',medio:'El Radar',tono:'pos',fecha:'2026-02-01'}]},
-  {id:'deporte',sector:'deporte',nombre:'SEREMI Deporte',c1:'#f43f5e',c2:'#e11d48',visitas:8,contactos:58,prensa:11,proyectos:4,comunas:['Talca','Curicó','Linares','Parral','Cauquenes'],descripProyectos:[{title:'Juegos Deportivos Escolares Maule 2025',meta:'Nov. 2025',estado:'Formulación'},{title:'Mejoramiento Infraestructura Deportiva',meta:'Ago. 2025',estado:'En ejecución'}],nudos:[{title:'Infraestructura deportiva deteriorada',desc:'14 municipios con multicancha en mal estado.',urgencia:'Media'}],temas:[{tema:'Deporte escolar y cohesión social',prioridad:'Media'}],agenda:[{fecha:'2026-04-20',texto:'Campeonato regional atletismo escolar',cat:'Competencia'},{fecha:'2026-11-10',texto:'Juegos Deportivos Escolares Maule',cat:'Evento Mayor'}],prensaItems:[{titular:'Juegos Deportivos Escolares Maule 2025 prometen ser los más grandes',medio:'La Prensa Austral',tono:'pos',fecha:'2026-02-12'}]},
-  {id:'mujer',sector:'mujer',nombre:'SEREMI Mujer y Equidad de Género',c1:'#d946ef',c2:'#c026d3',visitas:9,contactos:67,prensa:13,proyectos:5,comunas:['Talca','Curicó','Linares','Parral','Cauquenes','Constitución'],descripProyectos:[{title:'Casa de Acogida Maule Sur (Linares)',meta:'Jun. 2025',estado:'Construcción'},{title:'Programa 4 a 7 — Cuidado Infantil',meta:'Continuo',estado:'Activo'},{title:'Ley Karin — Capacitación Servicios Públicos',meta:'Mar. 2025',estado:'En ejecución'}],nudos:[{title:'Femicidios y violencia intrafamiliar',desc:'3 femicidios en 2024. Centros de la Mujer sin capacidad.',urgencia:'Alta'},{title:'Brecha empleo formal zonas rurales',desc:'18 puntos de diferencia hombre-mujer.',urgencia:'Media'}],temas:[{tema:'Violencia de género zonas rurales',prioridad:'Alta'},{tema:'Mujeres rurales y emprendimiento',prioridad:'Media'}],agenda:[{fecha:'2026-03-08',texto:'Día Internacional de la Mujer — actividades región',cat:'Conmemoración'},{fecha:'2026-06-10',texto:'Inauguración Casa de Acogida Linares',cat:'Inauguración'}],prensaItems:[{titular:'SEREMI Mujer anuncia apertura de nueva Casa de Acogida',medio:'El Centro',tono:'pos',fecha:'2026-02-15'},{titular:'Organizaciones exigen más recursos para violencia de género',medio:'Maule Noticias',tono:'neg',fecha:'2026-02-08'}]},
-];
+let SD = [];
+
+// Cargar SEREMIs desde el servidor
+async function loadSeremis(){
+  try {
+    const response = await fetch('/api/seremis');
+    if (!response.ok) throw new Error('Error al cargar SEREMIs');
+    SD = await response.json();
+    syncSeremiNames();
+    return SD;
+  } catch (error) {
+    console.error('Error cargando SEREMIs:', error);
+    showToast('Error al cargar datos del servidor', '#e85454');
+    return [];
+  }
+}
 
 // Sync seremi name from USERS into SD
 function syncSeremiNames(){
@@ -1383,18 +1378,21 @@ function syncSeremiNames(){
     else s.seremiName = s.nombre;
   });
 }
-syncSeremiNames();
 
 // ═══════════════════════════════════════════════════════
 //  AUTH
 // ═══════════════════════════════════════════════════════
-function doLogin(){
+async function doLogin(){
   const user=document.getElementById('loginUser').value.trim();
   const pass=document.getElementById('loginPass').value;
   const found=USERS.find(u=>u.username===user&&u.pass===pass);
   if(!found){document.getElementById('loginError').classList.add('visible');return;}
   currentUser=found;
   document.getElementById('loginError').classList.remove('visible');
+  
+  // Cargar datos desde el servidor
+  await loadSeremis();
+  
   document.getElementById('loginScreen').classList.remove('active');
   document.getElementById('mainScreen').classList.add('active');
   setupForUser();
@@ -1725,49 +1723,107 @@ function selectTono(val,el){
   ['pos','neu','neg'].forEach(t=>{document.getElementById('tono-'+t)?.classList.remove('sel-alta','sel-media','sel-baja');});
   el.classList.add(val==='pos'?'sel-alta':val==='neu'?'sel-media':'sel-baja');
 }
-function saveRecord(){
+async function saveRecord(){
   // Determine target seremi
   let sid=currentUser?.rol==='admin'?document.getElementById('recordSeremiId').value:currentUser?.seremiId;
   if(!sid){alert('Selecciona una SEREMI');return;}
   const s=SD.find(x=>x.id===sid);if(!s)return;
   const type=currentRecordType;
+  
+  let payload = { seremiId: sid };
+  let endpoint = '';
+  
   if(type==='visita'){
     const comuna=document.getElementById('v-comuna').value.trim();
     if(!comuna){alert('Ingresa la comuna');return;}
-    if(!s.comunas.includes(comuna)) s.comunas.push(comuna);
-    s.visitas+=1;
-    const personas=parseInt(document.getElementById('v-personas').value)||0;
-    s.contactos+=personas;
+    payload.fecha = document.getElementById('v-fecha').value || new Date().toISOString().slice(0,10);
+    payload.comuna = comuna;
+    payload.lugar = document.getElementById('v-lugar').value.trim();
+    payload.personas = parseInt(document.getElementById('v-personas').value) || 0;
+    payload.descripcion = document.getElementById('v-desc').value.trim();
+    endpoint = '/api/visitas';
   } else if(type==='contacto'){
-    const personas=parseInt(document.getElementById('c-personas').value)||0;
-    s.contactos+=personas;
+    const nombre = document.getElementById('c-nombre').value.trim();
+    if(!nombre){alert('Ingresa el nombre del contacto');return;}
+    payload.nombre = nombre;
+    payload.fecha = document.getElementById('c-fecha').value || new Date().toISOString().slice(0,10);
+    payload.lugar = document.getElementById('c-lugar').value.trim();
+    payload.personas = parseInt(document.getElementById('c-personas').value) || 0;
+    payload.tipo = document.getElementById('c-tipo').value;
+    payload.instituciones = document.getElementById('c-instituciones').value.trim();
+    payload.descripcion = document.getElementById('c-desc').value.trim();
+    endpoint = '/api/contactos';
   } else if(type==='prensa'){
     const titular=document.getElementById('p-titular').value.trim();
     if(!titular){alert('Ingresa el titular');return;}
-    s.prensaItems.push({titular,medio:document.getElementById('p-medio').value,tono:currentTono,fecha:document.getElementById('p-fecha').value||new Date().toISOString().slice(0,10)});
-    s.prensa+=1;
+    payload.titular = titular;
+    payload.medio = document.getElementById('p-medio').value.trim();
+    payload.fecha = document.getElementById('p-fecha').value || new Date().toISOString().slice(0,10);
+    payload.tipoMedio = document.getElementById('p-tipo').value;
+    payload.tono = currentTono;
+    payload.url = document.getElementById('p-url').value.trim();
+    payload.resumen = document.getElementById('p-resumen').value.trim();
+    endpoint = '/api/prensa';
   } else if(type==='proyecto'){
     const title=document.getElementById('pr-nombre').value.trim();
     if(!title){alert('Ingresa el nombre del proyecto');return;}
-    s.descripProyectos.push({title,meta:document.getElementById('pr-meta').value,estado:document.getElementById('pr-estado').value});
-    s.proyectos+=1;
+    payload.title = title;
+    payload.meta = document.getElementById('pr-meta').value.trim();
+    payload.estado = document.getElementById('pr-estado').value;
+    payload.presupuesto = document.getElementById('pr-presupuesto').value.trim();
+    payload.descripcion = document.getElementById('pr-desc').value.trim();
+    payload.comunas = document.getElementById('pr-comunas').value.trim();
+    endpoint = '/api/proyectos';
   } else if(type==='nudo'){
     const title=document.getElementById('n-titulo').value.trim();
     if(!title){alert('Ingresa el título');return;}
-    s.nudos.push({title,desc:document.getElementById('n-desc').value,urgencia:currentUrgencia});
+    payload.title = title;
+    payload.desc = document.getElementById('n-desc').value.trim();
+    payload.urgencia = currentUrgencia;
+    payload.solucion = document.getElementById('n-solucion').value.trim();
+    endpoint = '/api/nudos';
   } else if(type==='tema'){
     const tema=document.getElementById('t-tema').value.trim();
     if(!tema){alert('Ingresa el tema');return;}
-    s.temas.push({tema,prioridad:document.getElementById('t-prioridad').value});
+    payload.tema = tema;
+    payload.ambito = document.getElementById('t-ambito').value.trim();
+    payload.prioridad = document.getElementById('t-prioridad').value;
+    payload.descripcion = document.getElementById('t-desc').value.trim();
+    endpoint = '/api/temas';
   } else if(type==='agenda'){
     const texto=document.getElementById('a-desc').value.trim();
     if(!texto){alert('Ingresa la descripción del hito');return;}
-    s.agenda.push({fecha:document.getElementById('a-fecha').value||new Date().toISOString().slice(0,10),texto,cat:document.getElementById('a-cat').value});
+    payload.fecha = document.getElementById('a-fecha').value || new Date().toISOString().slice(0,10);
+    payload.texto = texto;
+    payload.cat = document.getElementById('a-cat').value;
+    endpoint = '/api/agenda';
   }
-  closeModal('modalRecord');
-  applyPeriodFilter();
-  if(currentDetailId===sid) openDetail(sid,null);
-  showToast(`✓ Registro guardado en ${s.nombre}`,'#2ec4a5');
+  
+  // Guardar en la base de datos
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) {
+      throw new Error('Error al guardar');
+    }
+    
+    const result = await response.json();
+    console.log('Guardado con ID:', result.id);
+    
+    closeModal('modalRecord');
+    // Recargar datos desde el servidor
+    await loadSeremis();
+    applyPeriodFilter();
+    if(currentDetailId===sid) openDetail(sid,null);
+    showToast(`✓ Registro guardado en ${s.nombre}`,'#2ec4a5');
+  } catch (error) {
+    console.error('Error al guardar:', error);
+    showToast('✗ Error al guardar. Intenta nuevamente.', '#e85454');
+  }
 }
 
 // ═══════════════════════════════════════════════════════
