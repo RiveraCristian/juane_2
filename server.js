@@ -237,8 +237,14 @@ app.post('/api/users', (req, res) => {
 
 app.put('/api/users/:id', (req, res) => {
   const b = req.body;
-  db.prepare('UPDATE users SET nombre=?, cargo=?, username=?, pass=?, email=?, tel=?, rol=?, seremiId=? WHERE id=?')
-    .run(b.nombre, b.cargo || '', b.username, b.pass, b.email || '', b.tel || '', b.rol || 'seremi', b.seremiId || null, req.params.id);
+  // Si se proporciona contraseña, actualizar todo; si no, mantener contraseña actual
+  if (b.pass) {
+    db.prepare('UPDATE users SET nombre=?, cargo=?, username=?, pass=?, email=?, tel=?, rol=?, seremiId=? WHERE id=?')
+      .run(b.nombre, b.cargo || '', b.username, b.pass, b.email || '', b.tel || '', b.rol || 'seremi', b.seremiId || null, req.params.id);
+  } else {
+    db.prepare('UPDATE users SET nombre=?, cargo=?, username=?, email=?, tel=?, rol=?, seremiId=? WHERE id=?')
+      .run(b.nombre, b.cargo || '', b.username, b.email || '', b.tel || '', b.rol || 'seremi', b.seremiId || null, req.params.id);
+  }
   res.json({ ok: true });
 });
 

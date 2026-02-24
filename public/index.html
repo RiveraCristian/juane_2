@@ -1327,28 +1327,20 @@ let editingUserId = null;
 // ═══════════════════════════════════════════════════════
 //  USUARIOS (base de datos local)
 // ═══════════════════════════════════════════════════════
-let USERS = [
-  {id:'admin', username:'admin', pass:'admin123', rol:'admin', nombre:'Administrador Regional', cargo:'Admin', email:'admin@gore-maule.cl', tel:''},
-  {id:'salud', username:'salud', pass:'seremi123', rol:'seremi', seremiId:'salud', nombre:'Carmen López', cargo:'Dra.', email:'clopez@minsal.cl', tel:'+56 9 1111 0001'},
-  {id:'educacion', username:'educacion', pass:'seremi123', rol:'seremi', seremiId:'educacion', nombre:'Rodrigo Valdivia', cargo:'Sr.', email:'rvaldivia@mineduc.cl', tel:'+56 9 1111 0002'},
-  {id:'obras', username:'obras', pass:'seremi123', rol:'seremi', seremiId:'obras', nombre:'Felipe Meza', cargo:'Ing.', email:'fmeza@mop.gov.cl', tel:'+56 9 1111 0003'},
-  {id:'agricultura', username:'agricultura', pass:'seremi123', rol:'seremi', seremiId:'agricultura', nombre:'Marcela Torres', cargo:'Ing.', email:'mtorres@minagri.gob.cl', tel:'+56 9 1111 0004'},
-  {id:'vivienda', username:'vivienda', pass:'seremi123', rol:'seremi', seremiId:'vivienda', nombre:'Sandra Rojas', cargo:'Arq.', email:'srojas@minvu.cl', tel:'+56 9 1111 0005'},
-  {id:'transporte', username:'transporte', pass:'seremi123', rol:'seremi', seremiId:'transporte', nombre:'Pablo Ibáñez', cargo:'Sr.', email:'pibanez@mtt.gob.cl', tel:'+56 9 1111 0006'},
-  {id:'bienes', username:'bienes', pass:'seremi123', rol:'seremi', seremiId:'bienes', nombre:'Antonio Fuentes', cargo:'Sr.', email:'afuentes@bienes.cl', tel:'+56 9 1111 0007'},
-  {id:'trabajo', username:'trabajo', pass:'seremi123', rol:'seremi', seremiId:'trabajo', nombre:'Claudia Vera', cargo:'Sra.', email:'cvera@mintrab.gob.cl', tel:'+56 9 1111 0008'},
-  {id:'medioambiente', username:'medioambiente', pass:'seremi123', rol:'seremi', seremiId:'medioambiente', nombre:'Valentina Soto', cargo:'Dra.', email:'vsoto@mma.gob.cl', tel:'+56 9 1111 0009'},
-  {id:'energia', username:'energia', pass:'seremi123', rol:'seremi', seremiId:'energia', nombre:'Cristóbal Ramos', cargo:'Ing.', email:'cramos@energia.gob.cl', tel:'+56 9 1111 0010'},
-  {id:'economia', username:'economia', pass:'seremi123', rol:'seremi', seremiId:'economia', nombre:'Fernanda Lagos', cargo:'Mg.', email:'flagos@economia.cl', tel:'+56 9 1111 0011'},
-  {id:'mineria', username:'mineria', pass:'seremi123', rol:'seremi', seremiId:'mineria', nombre:'Jorge Espinoza', cargo:'Ing.', email:'jespinoza@minmineria.cl', tel:'+56 9 1111 0012'},
-  {id:'desarrollosocial', username:'desarrollosocial', pass:'seremi123', rol:'seremi', seremiId:'desarrollosocial', nombre:'Patricia Muñoz', cargo:'Sra.', email:'pmunoz@mdsf.gob.cl', tel:'+56 9 1111 0013'},
-  {id:'justicia', username:'justicia', pass:'seremi123', rol:'seremi', seremiId:'justicia', nombre:'Nelson Tapia', cargo:'Abg.', email:'ntapia@minjusticia.cl', tel:'+56 9 1111 0014'},
-  {id:'interior', username:'interior', pass:'seremi123', rol:'seremi', seremiId:'interior', nombre:'Mauricio Flores', cargo:'Sr.', email:'mflores@interior.gob.cl', tel:'+56 9 1111 0015'},
-  {id:'cultura', username:'cultura', pass:'seremi123', rol:'seremi', seremiId:'cultura', nombre:'Isabel Contreras', cargo:'Sra.', email:'icontreras@cultura.gob.cl', tel:'+56 9 1111 0016'},
-  {id:'ciencia', username:'ciencia', pass:'seremi123', rol:'seremi', seremiId:'ciencia', nombre:'Andrés Bravo', cargo:'Dr.', email:'abravo@minciencia.gob.cl', tel:'+56 9 1111 0017'},
-  {id:'deporte', username:'deporte', pass:'seremi123', rol:'seremi', seremiId:'deporte', nombre:'Lucas Herrera', cargo:'Prof.', email:'lherrera@ind.cl', tel:'+56 9 1111 0018'},
-  {id:'mujer', username:'mujer', pass:'seremi123', rol:'seremi', seremiId:'mujer', nombre:'Andrea Castro', cargo:'Sra.', email:'acastro@sernameg.gob.cl', tel:'+56 9 1111 0019'},
-];
+let USERS = [];
+
+// Cargar usuarios desde el servidor
+async function loadUsers(){
+  try {
+    const response = await fetch('/api/users');
+    if (!response.ok) throw new Error('Error al cargar usuarios');
+    USERS = await response.json();
+    return USERS;
+  } catch (error) {
+    console.error('Error cargando usuarios:', error);
+    return [];
+  }
+}
 
 // ═══════════════════════════════════════════════════════
 //  SEREMIS DATA
@@ -1385,17 +1377,42 @@ function syncSeremiNames(){
 async function doLogin(){
   const user=document.getElementById('loginUser').value.trim();
   const pass=document.getElementById('loginPass').value;
-  const found=USERS.find(u=>u.username===user&&u.pass===pass);
-  if(!found){document.getElementById('loginError').classList.add('visible');return;}
-  currentUser=found;
-  document.getElementById('loginError').classList.remove('visible');
   
-  // Cargar datos desde el servidor
-  await loadSeremis();
+  if(!user || !pass) {
+    document.getElementById('loginError').classList.add('visible');
+    return;
+  }
   
-  document.getElementById('loginScreen').classList.remove('active');
-  document.getElementById('mainScreen').classList.add('active');
-  setupForUser();
+  try {
+    // Autenticar contra el servidor
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass })
+    });
+    
+    if (!response.ok) {
+      document.getElementById('loginError').classList.add('visible');
+      return;
+    }
+    
+    currentUser = await response.json();
+    document.getElementById('loginError').classList.remove('visible');
+    
+    // Cargar todos los datos desde el servidor
+    await Promise.all([
+      loadUsers(),
+      loadSeremis(),
+      loadContrataciones()
+    ]);
+    
+    document.getElementById('loginScreen').classList.remove('active');
+    document.getElementById('mainScreen').classList.add('active');
+    setupForUser();
+  } catch (error) {
+    console.error('Error al iniciar sesión:', error);
+    document.getElementById('loginError').classList.add('visible');
+  }
 }
 document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
@@ -1750,7 +1767,7 @@ async function saveRecord(){
     payload.lugar = document.getElementById('c-lugar').value.trim();
     payload.personas = parseInt(document.getElementById('c-personas').value) || 0;
     payload.tipo = document.getElementById('c-tipo').value;
-    payload.instituciones = document.getElementById('c-instituciones').value.trim();
+    payload.instituciones = document.getElementById('c-inst').value.trim();
     payload.descripcion = document.getElementById('c-desc').value.trim();
     endpoint = '/api/contactos';
   } else if(type==='prensa'){
@@ -1762,7 +1779,7 @@ async function saveRecord(){
     payload.tipoMedio = document.getElementById('p-tipo').value;
     payload.tono = currentTono;
     payload.url = document.getElementById('p-url').value.trim();
-    payload.resumen = document.getElementById('p-resumen').value.trim();
+    payload.resumen = document.getElementById('p-desc').value.trim();
     endpoint = '/api/prensa';
   } else if(type==='proyecto'){
     const title=document.getElementById('pr-nombre').value.trim();
@@ -1796,6 +1813,8 @@ async function saveRecord(){
     payload.fecha = document.getElementById('a-fecha').value || new Date().toISOString().slice(0,10);
     payload.texto = texto;
     payload.cat = document.getElementById('a-cat').value;
+    payload.lugar = document.getElementById('a-lugar').value.trim();
+    payload.notas = document.getElementById('a-notas').value.trim();
     endpoint = '/api/agenda';
   }
   
@@ -1869,6 +1888,7 @@ function openAddUser(){
   editingUserId=null;
   document.getElementById('modalUserTitle').textContent='Agregar Usuario';
   ['u-nombre','u-cargo','u-usuario','u-pass','u-email','u-tel'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('u-pass').placeholder='Mínimo 6 caracteres';
   document.getElementById('u-rol').value='seremi';
   document.getElementById('u-seremi-id').value='';
   document.getElementById('u-seremi-group').style.display='block';
@@ -1881,7 +1901,8 @@ function editUser(id){
   document.getElementById('u-nombre').value=u.nombre;
   document.getElementById('u-cargo').value=u.cargo||'';
   document.getElementById('u-usuario').value=u.username;
-  document.getElementById('u-pass').value=u.pass;
+  document.getElementById('u-pass').value='';  // Dejar vacío, se cambia solo si el usuario ingresa una nueva
+  document.getElementById('u-pass').placeholder='Dejar vacío para mantener actual';
   document.getElementById('u-email').value=u.email||'';
   document.getElementById('u-tel').value=u.tel||'';
   document.getElementById('u-rol').value=u.rol;
@@ -1889,33 +1910,86 @@ function editUser(id){
   toggleSeremiField();
   document.getElementById('modalUser').classList.add('open');
 }
-function deleteUser(id){
+async function deleteUser(id){
   if(!confirm('¿Eliminar este usuario?'))return;
-  USERS=USERS.filter(u=>u.id!==id);
-  syncSeremiNames();renderAdminUsers();renderCards(SD);
-  showToast('Usuario eliminado','#e85454');
+  
+  try {
+    const response = await fetch(`/api/users/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Error al eliminar usuario');
+    }
+    
+    await loadUsers();
+    syncSeremiNames();
+    renderAdminUsers();
+    renderCards(SD);
+    showToast('Usuario eliminado','#e85454');
+  } catch (error) {
+    console.error('Error eliminando usuario:', error);
+    showToast('Error al eliminar usuario','#e85454');
+  }
 }
 function toggleSeremiField(){
   const rol=document.getElementById('u-rol').value;
   document.getElementById('u-seremi-group').style.display=rol==='seremi'?'block':'none';
 }
-function saveUser(){
+async function saveUser(){
   const nombre=document.getElementById('u-nombre').value.trim();
   const usuario=document.getElementById('u-usuario').value.trim();
   const pass=document.getElementById('u-pass').value;
-  if(!nombre||!usuario||!pass){alert('Nombre, usuario y contraseña son obligatorios');return;}
+  
+  // Al crear, contraseña es obligatoria; al editar, es opcional
+  if(!nombre||!usuario){alert('Nombre y usuario son obligatorios');return;}
+  if(!editingUserId && !pass){alert('La contraseña es obligatoria para usuarios nuevos');return;}
+  
   const rol=document.getElementById('u-rol').value;
   const seremiId=rol==='seremi'?document.getElementById('u-seremi-id').value:'';
   if(rol==='seremi'&&!seremiId){alert('Selecciona la SEREMI asignada');return;}
-  if(editingUserId){
-    const u=USERS.find(x=>x.id===editingUserId);
-    if(u){u.nombre=nombre;u.cargo=document.getElementById('u-cargo').value.trim();u.username=usuario;u.pass=pass;u.email=document.getElementById('u-email').value;u.tel=document.getElementById('u-tel').value;u.rol=rol;u.seremiId=seremiId;}
-  } else {
-    const newId=usuario+'_'+Date.now();
-    USERS.push({id:newId,username:usuario,pass,rol,seremiId,nombre,cargo:document.getElementById('u-cargo').value.trim(),email:document.getElementById('u-email').value,tel:document.getElementById('u-tel').value});
+  
+  const payload = {
+    nombre,
+    username: usuario,
+    rol,
+    seremiId: seremiId || null,
+    cargo: document.getElementById('u-cargo').value.trim(),
+    email: document.getElementById('u-email').value.trim(),
+    tel: document.getElementById('u-tel').value.trim()
+  };
+  
+  // Solo incluir contraseña si se proporcionó
+  if(pass) payload.pass = pass;
+  
+  try {
+    let response;
+    if(editingUserId){
+      response = await fetch(`/api/users/${editingUserId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
+    
+    if (!response.ok) throw new Error('Error al guardar usuario');
+    
+    await loadUsers();
+    syncSeremiNames();
+    closeModal('modalUser');
+    renderAdminUsers();
+    renderCards(SD);
+    showToast('✓ Usuario guardado','#2ec4a5');
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('✗ Error al guardar usuario', '#e85454');
   }
-  syncSeremiNames();closeModal('modalUser');renderAdminUsers();renderCards(SD);
-  showToast('✓ Usuario guardado','#2ec4a5');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1997,15 +2071,27 @@ function exportAgendaExcel(){const all=SD.flatMap(s=>(s.agenda||[]).map(a=>({'SE
 // ══════════════════════════════════════════════════════
 //  MÓDULO CONTRATACIONES
 // ══════════════════════════════════════════════════════
-let contrats = [
-  {id:1,seremiId:'salud',nombre:'María José Contreras',rut:'15.234.567-8',cargo:'Profesional Sectorial',grado:'Grado 10',tipo:'Honorarios',esNuevo:'Nuevo',inicio:'2026-03-01',termino:'2026-12-31',monto:'1850000',financ:'Presupuesto SEREMI',just:'Refuerzo equipo epidemiológico para campaña invierno regional.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'salud',creadoEn:'2026-02-18'},
-  {id:2,seremiId:'educacion',nombre:'Carlos Fuentes Riquelme',rut:'12.876.543-2',cargo:'Analista de Datos',grado:'Grado 12',tipo:'Contrata',esNuevo:'Cambio',inicio:'2026-03-15',termino:'2026-12-31',monto:'1450000',financ:'Programa sectorial',just:'Apoyo al Sistema de Información Escolar regional (SIGE).',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-17',creadoPor:'educacion',creadoEn:'2026-02-10'},
-  {id:3,seremiId:'obras',nombre:'Sofía Espinoza Vera',rut:'16.123.456-7',cargo:'Ingeniero Vial',grado:'Grado 9',tipo:'Honorarios',esNuevo:'Nuevo',inicio:'2026-04-01',termino:'2026-10-31',monto:'2100000',financ:'Transferencia GORE',just:'Supervisión obras puente Río Claro sector Talca.',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-20',creadoPor:'obras',creadoEn:'2026-02-14'},
-  {id:4,seremiId:'vivienda',nombre:'Lorena Tapia Muñoz',rut:'14.987.654-3',cargo:'Arquitecta Revisora',grado:'Grado 8',tipo:'Contrata',esNuevo:'Cambio',inicio:'2026-03-01',termino:'2027-02-28',monto:'1720000',financ:'Presupuesto SEREMI',just:'Revisión permisos y proyectos DS19 para sector rural.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'vivienda',creadoEn:'2026-02-21'},
-  {id:5,seremiId:'medioambiente',nombre:'Rodrigo Castro Ibáñez',rut:'17.345.678-4',cargo:'Inspector Ambiental',grado:'Grado 11',tipo:'Honorarios',esNuevo:'Nuevo',inicio:'2026-03-15',termino:'2026-09-15',monto:'1350000',financ:'Presupuesto SEREMI',just:'Fiscalización norma SO2 cuenca Río Maule.',estado:'Pendiente',vbQuien:'',vbFecha:'',creadoPor:'medioambiente',creadoEn:'2026-02-22'},
-  {id:6,seremiId:'agricultura',nombre:'Camila Rojas Figueroa',rut:'13.654.321-K',cargo:'Técnico Agrícola',grado:'Nivel 2',tipo:'Honorarios',esNuevo:'Nuevo',inicio:'2026-03-01',termino:'2026-06-30',monto:'980000',financ:'Programa sectorial',just:'Apoyo programa emergencia hídrica zona secana interior.',estado:'Aprobada',vbQuien:'Administrador Regional',vbFecha:'2026-02-19',creadoPor:'agricultura',creadoEn:'2026-02-12'},
-];
-let cNextId=7, cFiltro='todos', cDetalleId=null;
+let contrats = [];
+let cNextId=1, cFiltro='todos', cDetalleId=null;
+
+// Cargar contrataciones desde el servidor
+async function loadContrataciones(){
+  try {
+    const seremiId = currentUser?.rol === 'seremi' ? currentUser.seremiId : null;
+    const url = seremiId ? `/api/contrataciones?seremiId=${seremiId}` : '/api/contrataciones';
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Error al cargar contrataciones');
+    contrats = await response.json();
+    if(contrats.length > 0) {
+      cNextId = Math.max(...contrats.map(c => c.id)) + 1;
+    }
+    cUpdateBadge();
+    return contrats;
+  } catch (error) {
+    console.error('Error cargando contrataciones:', error);
+    return [];
+  }
+}
 
 const CDIAS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 const CMESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -2094,7 +2180,7 @@ function openModalNueva(){
   document.getElementById('overlayNueva').classList.add('open');
 }
 
-function cGuardar(){
+async function cGuardar(){
   const esAdmin=currentUser?.rol==='admin';
   const seremiId=esAdmin?document.getElementById('cFSeremi').value:currentUser?.seremiId;
   const nombre=document.getElementById('cFNombre').value.trim();
@@ -2111,17 +2197,44 @@ function cGuardar(){
   if(!inicio||!termino){alert('Ingresa fechas inicio y término');return;}
   if(!monto){alert('Ingresa el monto mensual');return;}
   if(!just){alert('Ingresa la justificación');return;}
-  contrats.push({id:cNextId++,seremiId,nombre,rut,cargo,
-    grado:document.getElementById('cFGrado').value.trim(),
-    tipo:document.getElementById('cFTipo').value,
-    esNuevo:document.getElementById('cFEsNuevo').value,
-    inicio,termino,monto,
-    financ:document.getElementById('cFFinanc').value,just,
-    estado:'Pendiente',vbQuien:'',vbFecha:'',
-    creadoPor:currentUser?.nombre,creadoEn:new Date().toISOString().slice(0,10)});
-  closeModal('overlayNueva');
-  cRenderTable();
-  showToast('📤 Solicitud enviada — Pendiente de VB del Administrador','#2ec4a5');
+  
+  const payload = {
+    seremiId,
+    nombre,
+    rut,
+    cargo,
+    grado: document.getElementById('cFGrado').value.trim(),
+    tipo: document.getElementById('cFTipo').value,
+    esNuevo: document.getElementById('cFEsNuevo').value,
+    inicio,
+    termino,
+    monto,
+    financ: document.getElementById('cFFinanc').value,
+    just,
+    estado: 'Pendiente',
+    vbQuien: '',
+    vbFecha: '',
+    creadoPor: currentUser?.nombre,
+    creadoEn: new Date().toISOString().slice(0,10)
+  };
+  
+  try {
+    const response = await fetch('/api/contrataciones', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    if (!response.ok) throw new Error('Error al guardar');
+    
+    await loadContrataciones();
+    closeModal('overlayNueva');
+    cRenderTable();
+    showToast('📤 Solicitud enviada — Pendiente de VB del Administrador','#2ec4a5');
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('✗ Error al guardar contratación', '#e85454');
+  }
 }
 
 function cAbrirDetalle(id,e){
@@ -2165,14 +2278,30 @@ function cAbrirDetalle(id,e){
   document.getElementById('overlayDetalle').classList.add('open');
 }
 
-function cDarVB(){
+async function cDarVB(){
   const c=contrats.find(x=>x.id===cDetalleId);if(!c)return;
-  c.estado='Aprobada';
-  c.vbQuien=currentUser?.nombre||'Administrador Regional';
-  c.vbFecha=new Date().toISOString().slice(0,10);
-  closeModal('overlayDetalle');
-  cRenderTable();
-  showToast('✅ Visto Bueno otorgado — Contratación aprobada','#2ec4a5');
+  
+  try {
+    const response = await fetch(`/api/contrataciones/${cDetalleId}/vb`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        estado: 'Aprobada',
+        vbQuien: currentUser?.nombre || 'Administrador Regional',
+        vbFecha: new Date().toISOString().slice(0,10)
+      })
+    });
+    
+    if (!response.ok) throw new Error('Error al dar visto bueno');
+    
+    await loadContrataciones();
+    closeModal('overlayDetalle');
+    cRenderTable();
+    showToast('✅ Visto Bueno otorgado — Contratación aprobada','#2ec4a5');
+  } catch (error) {
+    console.error('Error:', error);
+    showToast('✗ Error al aprobar contratación', '#e85454');
+  }
 }
 function cVbRapido(id,e){if(e)e.stopPropagation();cDetalleId=id;cDarVB();}
 
