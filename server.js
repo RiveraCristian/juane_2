@@ -13,21 +13,38 @@ app.use(express.static(path.join(__dirname, 'public')));
 function seremiData(sid) {
   const s = db.prepare('SELECT * FROM seremis WHERE id = ?').get(sid);
   if (!s) return null;
-  s.visitas      = db.prepare('SELECT * FROM visitas WHERE seremiId = ? ORDER BY fecha DESC').all(sid);
-  s.contactos    = db.prepare('SELECT * FROM contactos WHERE seremiId = ? ORDER BY fecha DESC').all(sid);
-  s.prensaItems  = db.prepare('SELECT * FROM prensa WHERE seremiId = ? ORDER BY fecha DESC').all(sid);
-  s.descripProyectos = db.prepare('SELECT * FROM proyectos WHERE seremiId = ?').all(sid);
-  s.nudos        = db.prepare('SELECT * FROM nudos WHERE seremiId = ?').all(sid);
-  s.temas        = db.prepare('SELECT * FROM temas WHERE seremiId = ?').all(sid);
-  s.agenda       = db.prepare('SELECT * FROM agenda WHERE seremiId = ? ORDER BY fecha ASC').all(sid);
-  // Computed counters
-  s.visitasCount   = s.visitas.length;
-  s.contactosCount = s.visitas.reduce((a, v) => a + (v.personas || 0), 0)
-                   + s.contactos.reduce((a, c) => a + (c.personas || 0), 0);
-  s.prensaCount    = s.prensaItems.length;
-  s.proyectosCount = s.descripProyectos.length;
+  const visitasArr      = db.prepare('SELECT * FROM visitas WHERE seremiId = ? ORDER BY fecha DESC').all(sid);
+  const contactosArr    = db.prepare('SELECT * FROM contactos WHERE seremiId = ? ORDER BY fecha DESC').all(sid);
+  const prensaArr       = db.prepare('SELECT * FROM prensa WHERE seremiId = ? ORDER BY fecha DESC').all(sid);
+  const proyectosArr    = db.prepare('SELECT * FROM proyectos WHERE seremiId = ?').all(sid);
+  const nudosArr        = db.prepare('SELECT * FROM nudos WHERE seremiId = ?').all(sid);
+  const temasArr        = db.prepare('SELECT * FROM temas WHERE seremiId = ?').all(sid);
+  const agendaArr       = db.prepare('SELECT * FROM agenda WHERE seremiId = ? ORDER BY fecha ASC').all(sid);
+  
+  // Arrays (nombres descriptivos)
+  s.visitasArray = visitasArr;
+  s.contactosArray = contactosArr;
+  s.prensaItems  = prensaArr;
+  s.descripProyectos = proyectosArr;
+  s.nudos        = nudosArr;
+  s.temas        = temasArr;
+  s.agenda       = agendaArr;
+  
+  // Computed counters (compatibilidad con frontend)
+  s.visitasCount   = visitasArr.length;
+  s.contactosCount = visitasArr.reduce((a, v) => a + (v.personas || 0), 0)
+                   + contactosArr.reduce((a, c) => a + (c.personas || 0), 0);
+  s.prensaCount    = prensaArr.length;
+  s.proyectosCount = proyectosArr.length;
+  
+  // Aliases para compatibilidad (números simples)
+  s.visitas   = s.visitasCount;
+  s.contactos = s.contactosCount;
+  s.prensa    = s.prensaCount;
+  s.proyectos = s.proyectosCount;
+  
   // Unique comunas from visitas
-  s.comunas = [...new Set(s.visitas.map(v => v.comuna).filter(Boolean))];
+  s.comunas = [...new Set(visitasArr.map(v => v.comuna).filter(Boolean))];
   return s;
 }
 
@@ -220,8 +237,14 @@ app.post('/api/users', (req, res) => {
 
 app.put('/api/users/:id', (req, res) => {
   const b = req.body;
-  db.prepare('UPDATE users SET nombre=?, cargo=?, username=?, pass=?, email=?, tel=?, rol=?, seremiId=? WHERE id=?')
-    .run(b.nombre, b.cargo || '', b.username, b.pass, b.email || '', b.tel || '', b.rol || 'seremi', b.seremiId || null, req.params.id);
+  // Si se proporciona contraseña, actualizar todo; si no, mantener contraseña actual
+  if (b.pass) {
+    db.prepare('UPDATE users SET nombre=?, cargo=?, username=?, pass=?, email=?, tel=?, rol=?, seremiId=? WHERE id=?')
+      .run(b.nombre, b.cargo || '', b.username, b.pass, b.email || '', b.tel || '', b.rol || 'seremi', b.seremiId || null, req.params.id);
+  } else {
+    db.prepare('UPDATE users SET nombre=?, cargo=?, username=?, email=?, tel=?, rol=?, seremiId=? WHERE id=?')
+      .run(b.nombre, b.cargo || '', b.username, b.email || '', b.tel || '', b.rol || 'seremi', b.seremiId || null, req.params.id);
+  }
   res.json({ ok: true });
 });
 
