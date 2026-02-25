@@ -631,12 +631,14 @@ tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
     <div class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</div>
     <div class="tab-btn" onclick="switchTab('contrataciones',this)">📋 Contrataciones <span id="vbBadge" style="display:none;background:var(--accent);color:#0b0f1a;border-radius:10px;padding:1px 7px;font-size:9px;font-weight:700;margin-left:3px">0</span></div>
     <div class="tab-btn" onclick="switchTab('usuarios',this)">👥 Usuarios y SEREMIs</div>
+    <div class="tab-btn" onclick="switchTab('kpis',this)">📈 KPIs / Indicadores</div>
   </div>
 
   <!-- SEREMI tab nav -->
   <div class="tab-nav" id="seremiTabs" style="display:none">
     <div class="tab-btn active" onclick="switchTab('dashboard',this)">📊 Dashboard</div>
     <div class="tab-btn" onclick="switchTab('miseremi',this)">📋 Mi SEREMI</div>
+    <div class="tab-btn" onclick="switchTab('kpis',this)">📈 Mis KPIs</div>
     <div class="tab-btn" onclick="switchTab('contrataciones',this)">📋 Mis Contrataciones <span id="vbBadgeSeremi" style="display:none;background:var(--accent);color:#0b0f1a;border-radius:10px;padding:1px 7px;font-size:9px;font-weight:700;margin-left:3px">0</span></div>
   </div>
 
@@ -847,6 +849,16 @@ tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
         <tbody id="msPrensaBody"></tbody></table>
       </div>
 
+      <!-- Contactos -->
+      <div class="section-block" style="margin-bottom:20px">
+        <div class="section-block-header">
+          <div class="section-block-title"><span>🤝</span> Eventos y Contactos <span class="table-count" id="msContactosCount">0</span></div>
+          <button class="btn btn-primary" onclick="openNewRecord(null)" style="font-size:11px">+ Agregar</button>
+        </div>
+        <table class="prensa-table"><thead><tr><th>Nombre</th><th>Fecha</th><th>Lugar</th><th>Personas</th><th>Tipo</th><th>Acción</th></tr></thead>
+        <tbody id="msContactosBody"></tbody></table>
+      </div>
+
     </div>
   </div>
 
@@ -941,6 +953,29 @@ tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
         <button class="btn btn-primary" onclick="openAddUser()">+ Agregar Usuario</button>
       </div>
       <div class="admin-users-grid" id="adminUsersGrid"></div>
+    </div>
+  </div>
+
+  <!-- ══ TAB KPIs ══ -->
+  <div class="tab-content" id="tab-kpis">
+    <div class="container">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+        <div>
+          <div class="section-title">📈 Indicadores KPI</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Seguimiento de metas e indicadores por SEREMI</div>
+        </div>
+        <button class="btn btn-primary" onclick="openKPIModal()">+ Nuevo KPI</button>
+      </div>
+      <div id="kpiAdminFilter" style="display:none;margin-bottom:16px">
+        <select class="form-select" id="kpiSeremiFilter" onchange="loadKPIs()" style="max-width:280px">
+          <option value="">— Todos los SEREMIs —</option>
+        </select>
+      </div>
+      <div id="kpiSummaryRow" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px"></div>
+      <table class="prensa-table" id="kpiTable">
+        <thead><tr><th>Indicador</th><th>Meta</th><th>Real</th><th>% Avance</th><th>Estado</th><th>Período</th><th>Unidad</th><th>Acción</th></tr></thead>
+        <tbody id="kpiBody"></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -1051,6 +1086,27 @@ tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
           <button onclick="cDarVB()" style="padding:12px 28px;background:var(--accent3);border:none;border-radius:10px;color:#0b0f1a;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s">✅ Dar Visto Bueno — Aprobar contratación</button>
           <span style="font-size:11px;color:var(--text3)">El estado cambiará a <strong style="color:var(--accent3)">Aprobada</strong></span>
+        </div>
+      </div>
+
+      <!-- ── Documentos adjuntos ─────────────────────────── -->
+      <div style="margin-top:22px;border-top:1px solid var(--border);padding-top:18px">
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:12px">📄 Documentos adjuntos</div>
+        <div id="cDetArchivos" style="margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="file" id="cDetFileInput" style="font-size:11px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;cursor:pointer;flex:1;min-width:0">
+          <button onclick="cDetUpload()" style="padding:7px 14px;background:var(--accent2);border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">⬆ Subir archivo</button>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:5px">PDF, Word, Excel, imágenes · Máx. 20 MB</div>
+      </div>
+
+      <!-- ── Comentarios / notas ────────────────────────── -->
+      <div style="margin-top:22px;border-top:1px solid var(--border);padding-top:18px">
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:12px">💬 Comentarios y notas de seguimiento</div>
+        <div id="cDetComentarios" style="margin-bottom:12px;max-height:200px;overflow-y:auto"></div>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="cDetComInput" placeholder="Escribe un comentario..." style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text);outline:none" onkeydown="if(event.key==='Enter')cDetAddComment()">
+          <button onclick="cDetAddComment()" style="padding:8px 14px;background:var(--accent2);border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:600;cursor:pointer">Enviar</button>
         </div>
       </div>
     </div>
@@ -1312,6 +1368,217 @@ tr:hover td{background:rgba(255,255,255,.018);cursor:pointer;}
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+     MODAL — EDITAR VISITA
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modalEditVisita" onclick="closeModalOutside(event,'modalEditVisita')">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title">Editar Visita / Reunión</div>
+      <button class="detail-close" onclick="closeModal('modalEditVisita')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="evId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre / Institución *</label>
+          <input type="text" class="form-input" id="evNombre" placeholder="Nombre o institución">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha *</label>
+          <input type="date" class="form-input" id="evFecha">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo *</label>
+          <select class="form-select" id="evTipo">
+            <option>Visita</option><option>Reunión</option><option>Taller</option>
+            <option>Capacitación</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Urgencia</label>
+          <select class="form-select" id="evUrgencia">
+            <option>Alta</option><option>Media</option><option>Baja</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea class="form-textarea" id="evNotas" style="min-height:60px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modalEditVisita')">Cancelar</button>
+      <button class="btn-save" onclick="saveEditVisita()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL — EDITAR CONTACTO
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modalEditContacto" onclick="closeModalOutside(event,'modalEditContacto')">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title">Editar Evento / Contacto</div>
+      <button class="detail-close" onclick="closeModal('modalEditContacto')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ecId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input type="text" class="form-input" id="ecNombre" placeholder="Nombre o institución">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha *</label>
+          <input type="date" class="form-input" id="ecFecha">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Lugar</label>
+          <input type="text" class="form-input" id="ecLugar" placeholder="Lugar del evento">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Personas</label>
+          <input type="number" class="form-input" id="ecPersonas" placeholder="N° asistentes">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" id="ecTipo">
+          <option>Reunión</option><option>Visita</option><option>Evento</option>
+          <option>Taller</option><option>Capacitación</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea class="form-textarea" id="ecNotas" style="min-height:60px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modalEditContacto')">Cancelar</button>
+      <button class="btn-save" onclick="saveEditContacto()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL — KPI
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modalKPI" onclick="closeModalOutside(event,'modalKPI')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title" id="modalKPITitle">Nuevo Indicador KPI</div>
+      <button class="detail-close" onclick="closeModal('modalKPI')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="kpiId">
+      <!-- Selector de SEREMI: solo visible para admin al crear nuevo KPI -->
+      <div class="form-group" id="kpiSeremiGrupo" style="display:none">
+        <label class="form-label">SEREMI destinataria <span style="color:var(--danger)">*</span></label>
+        <select class="form-input" id="kpiSeremiSelector">
+          <option value="">— Selecciona SEREMI —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre del indicador *</label>
+        <input type="text" class="form-input" id="kpiNombre" placeholder="Ej: Visitas realizadas en terreno">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Meta *</label>
+          <input type="number" class="form-input" id="kpiMeta" placeholder="Ej: 100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Real (actual)</label>
+          <input type="number" class="form-input" id="kpiReal" placeholder="Ej: 75">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Unidad</label>
+          <input type="text" class="form-input" id="kpiUnidad" placeholder="Ej: visitas, %, consultas">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Período</label>
+          <input type="text" class="form-input" id="kpiPeriodo" placeholder="Ej: 2025-T1, Enero 2025">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea class="form-textarea" id="kpiDesc" style="min-height:60px" placeholder="Descripción del indicador..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('modalKPI')">Cancelar</button>
+      <button class="btn-save" onclick="saveKPI()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL COLABORACIÓN — Comentarios / Archivos / Historial
+════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalColab" onclick="closeModalOutside(event,'modalColab')">
+  <div class="modal" style="max-width:600px;width:95%">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="colabTitle">Colaboración</div>
+        <div id="colabSub" style="font-size:10px;color:var(--text3);margin-top:2px"></div>
+      </div>
+      <button class="detail-close" onclick="closeModal('modalColab')">×</button>
+    </div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 20px;background:var(--bg2)">
+      <button id="colabTabComentarios" onclick="colabSwitchTab('comentarios')"
+        style="padding:10px 18px;font-size:11px;font-weight:600;background:none;border:none;border-bottom:2px solid var(--accent);color:var(--accent);cursor:pointer;transition:.2s">
+        💬 Comentarios
+      </button>
+      <button id="colabTabArchivos" onclick="colabSwitchTab('archivos')"
+        style="padding:10px 18px;font-size:11px;font-weight:600;background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);cursor:pointer;transition:.2s">
+        📄 Archivos
+      </button>
+      <button id="colabTabHistorial" onclick="colabSwitchTab('historial')"
+        style="padding:10px 18px;font-size:11px;font-weight:600;background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);cursor:pointer;transition:.2s">
+        🕐 Historial
+      </button>
+    </div>
+    <div class="modal-body" style="padding:0">
+
+      <!-- COMENTARIOS -->
+      <div id="colabPanelComentarios" style="display:flex;flex-direction:column;height:420px">
+        <div id="colabComentariosList" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px"></div>
+        <div style="padding:12px 20px;border-top:1px solid var(--border);background:var(--bg3);display:flex;gap:8px;align-items:flex-end">
+          <textarea id="colabComInput" class="form-textarea" rows="2"
+            style="flex:1;min-height:40px;resize:vertical;font-size:12px"
+            placeholder="Escribe un comentario… (Enter para enviar)"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();colabAddComment();}"></textarea>
+          <button class="btn-save" style="height:40px;padding:0 16px;font-size:12px" onclick="colabAddComment()">Enviar</button>
+        </div>
+      </div>
+
+      <!-- ARCHIVOS -->
+      <div id="colabPanelArchivos" style="display:none;height:420px;display:none;flex-direction:column">
+        <div id="colabArchivosList" style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px"></div>
+        <div style="padding:12px 20px;border-top:1px solid var(--border);background:var(--bg3);display:flex;gap:8px;align-items:center">
+          <input type="file" id="colabFileInput" style="flex:1;font-size:11px;color:var(--text2)">
+          <button class="btn-save" style="height:36px;padding:0 16px;font-size:12px" onclick="colabUpload()">⬆ Subir</button>
+        </div>
+      </div>
+
+      <!-- HISTORIAL -->
+      <div id="colabPanelHistorial" style="display:none;height:420px;overflow-y:auto;padding:16px 20px">
+        <div id="colabHistorialList" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════
 //  STATE
@@ -1324,6 +1591,30 @@ let currentUrgencia = 'Alta';
 let currentTono = 'pos';
 let editingUserId = null;
 
+// ─── Auth / Session ─────────────────────────────────
+let authToken = null;
+const SESSION_MS = 30 * 60 * 1000; // 30 min
+let _sessionTimer = null;
+function _resetTimer() {
+  clearTimeout(_sessionTimer);
+  if (!currentUser) return;
+  _sessionTimer = setTimeout(() => {
+    if (currentUser) { doLogout(); showToast('Sesión cerrada por inactividad', '#e85454'); }
+  }, SESSION_MS);
+}
+['click','keydown','mousemove','touchstart'].forEach(ev =>
+  document.addEventListener(ev, _resetTimer, { passive: true }));
+
+async function authFetch(url, options = {}) {
+  if (!options.headers) options.headers = {};
+  options.headers['Authorization'] = 'Bearer ' + authToken;
+  if (!(options.body instanceof FormData) && !options.headers['Content-Type'])
+    options.headers['Content-Type'] = 'application/json';
+  const r = await fetch(url, options);
+  if (r.status === 401) { doLogout(); showToast('Sesión expirada, inicia sesión nuevamente', '#e85454'); }
+  return r;
+}
+
 // ═══════════════════════════════════════════════════════
 //  USUARIOS (base de datos local)
 // ═══════════════════════════════════════════════════════
@@ -1332,7 +1623,7 @@ let USERS = [];
 // Cargar usuarios desde el servidor
 async function loadUsers(){
   try {
-    const response = await fetch('/api/users');
+    const response = await authFetch('/api/users');
     if (!response.ok) throw new Error('Error al cargar usuarios');
     USERS = await response.json();
     return USERS;
@@ -1350,7 +1641,7 @@ let SD = [];
 // Cargar SEREMIs desde el servidor
 async function loadSeremis(){
   try {
-    const response = await fetch('/api/seremis');
+    const response = await authFetch('/api/seremis');
     if (!response.ok) throw new Error('Error al cargar SEREMIs');
     SD = await response.json();
     syncSeremiNames();
@@ -1397,6 +1688,8 @@ async function doLogin(){
     }
     
     currentUser = await response.json();
+    authToken = currentUser.token;
+    _resetTimer();
     document.getElementById('loginError').classList.remove('visible');
     
     // Cargar todos los datos desde el servidor
@@ -1419,6 +1712,8 @@ document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='
 
 function doLogout(){
   currentUser=null;
+  authToken=null;
+  clearTimeout(_sessionTimer);
   document.getElementById('mainScreen').classList.remove('active');
   document.getElementById('loginScreen').classList.add('active');
   document.getElementById('loginUser').value='';
@@ -1496,6 +1791,8 @@ function switchTab(name,el){
   el.classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='contrataciones') cRenderTable();
+  if(name==='miseremi') loadMiSeremi();
+  if(name==='kpis') loadKPIs();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1820,9 +2117,8 @@ async function saveRecord(){
   
   // Guardar en la base de datos
   try {
-    const response = await fetch(endpoint, {
+    const response = await authFetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     
@@ -1914,7 +2210,7 @@ async function deleteUser(id){
   if(!confirm('¿Eliminar este usuario?'))return;
   
   try {
-    const response = await fetch(`/api/users/${id}`, {
+    const response = await authFetch(`/api/users/${id}`, {
       method: 'DELETE'
     });
     
@@ -1965,13 +2261,13 @@ async function saveUser(){
   try {
     let response;
     if(editingUserId){
-      response = await fetch(`/api/users/${editingUserId}`, {
+      response = await authFetch(`/api/users/${editingUserId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
     } else {
-      response = await fetch('/api/users', {
+      response = await authFetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -2079,7 +2375,7 @@ async function loadContrataciones(){
   try {
     const seremiId = currentUser?.rol === 'seremi' ? currentUser.seremiId : null;
     const url = seremiId ? `/api/contrataciones?seremiId=${seremiId}` : '/api/contrataciones';
-    const response = await fetch(url);
+    const response = await authFetch(url);
     if (!response.ok) throw new Error('Error al cargar contrataciones');
     contrats = await response.json();
     if(contrats.length > 0) {
@@ -2219,9 +2515,8 @@ async function cGuardar(){
   };
   
   try {
-    const response = await fetch('/api/contrataciones', {
+    const response = await authFetch('/api/contrataciones', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     
@@ -2276,15 +2571,18 @@ function cAbrirDetalle(id,e){
   document.getElementById('cVbActionBox').style.display=
     currentUser?.rol==='admin'&&pend?'block':'none';
   document.getElementById('overlayDetalle').classList.add('open');
+  // Cargar archivos y comentarios de esta contratación
+  const sid = c.seremiId;
+  loadArchivos(sid, 'contrataciones', cDetalleId, 'cDetArchivos');
+  loadComentarios(sid, 'contrataciones', cDetalleId, 'cDetComentarios');
 }
 
 async function cDarVB(){
   const c=contrats.find(x=>x.id===cDetalleId);if(!c)return;
   
   try {
-    const response = await fetch(`/api/contrataciones/${cDetalleId}/vb`, {
+    const response = await authFetch(`/api/contrataciones/${cDetalleId}/vb`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         estado: 'Aprobada',
         vbQuien: currentUser?.nombre || 'Administrador Regional',
@@ -2304,6 +2602,17 @@ async function cDarVB(){
   }
 }
 function cVbRapido(id,e){if(e)e.stopPropagation();cDetalleId=id;cDarVB();}
+
+function cDetUpload() {
+  const c = contrats.find(x => x.id === cDetalleId);
+  if (!c) return;
+  uploadArchivo(c.seremiId, 'contrataciones', cDetalleId, 'cDetFileInput', 'cDetArchivos');
+}
+function cDetAddComment() {
+  const c = contrats.find(x => x.id === cDetalleId);
+  if (!c) return;
+  addComentario(c.seremiId, 'contrataciones', cDetalleId, 'cDetComInput', 'cDetComentarios');
+}
 
 function outsideClose(e,id){if(e.target===document.getElementById(id))closeModal(id);}
 
@@ -2330,6 +2639,741 @@ function exportContratExcel(){
 }
 // FIN MÓDULO CONTRATACIONES
 
+// ═══════════════════════════════════════════════════════
+//  MI SEREMI — Visitas, Contactos, Prensa
+// ═══════════════════════════════════════════════════════
+async function loadMiSeremi() {
+  if (!currentUser) return;
+  const sid = currentUser.seremiId || '';
+  // Update banner
+  const s = SD.find(x => x.id === sid);
+  if (s) {
+    const av = document.getElementById('miSeremiAvatar');
+    const nm = document.getElementById('miSeremiName');
+    const mt = document.getElementById('miSeremiMeta');
+    if (av) { av.textContent = s.nombre.charAt(8) || 'S'; av.style.background = `linear-gradient(135deg,${s.c1},${s.c2})`; }
+    if (nm) nm.textContent = s.nombre;
+    if (mt) mt.textContent = `${currentUser.cargo || ''} ${currentUser.nombre || ''} · ${currentUser.email || ''}`.trim();
+  }
+  try {
+    const [vRes, cRes, pRes, prRes, nRes, tRes, aRes] = await Promise.all([
+      authFetch(`/api/visitas?seremiId=${sid}`),
+      authFetch(`/api/contactos?seremiId=${sid}`),
+      authFetch(`/api/prensa?seremiId=${sid}`),
+      authFetch(`/api/proyectos?seremiId=${sid}`),
+      authFetch(`/api/nudos?seremiId=${sid}`),
+      authFetch(`/api/temas?seremiId=${sid}`),
+      authFetch(`/api/agenda?seremiId=${sid}`)
+    ]);
+    const visitas   = vRes.ok   ? await vRes.json()  : [];
+    const contactos = cRes.ok   ? await cRes.json()  : [];
+    const prensa    = pRes.ok   ? await pRes.json()  : [];
+    const proyectos = prRes.ok  ? await prRes.json() : [];
+    const nudos     = nRes.ok   ? await nRes.json()  : [];
+    const temas     = tRes.ok   ? await tRes.json()  : [];
+    const agenda    = aRes.ok   ? await aRes.json()  : [];
+    msRenderVisitas(visitas);
+    msRenderContactos(contactos);
+    msRenderPrensa(prensa);
+    msRenderProyectos(proyectos);
+    msRenderNudos(nudos);
+    msRenderTemas(temas);
+    msRenderAgenda(agenda);
+  } catch (err) {
+    console.error('Error cargando Mi SEREMI:', err);
+  }
+}
+
+function msRenderVisitas(arr) {
+  const tbody = document.getElementById('msVisitasBody');
+  const countEl = document.getElementById('msVisitasCount');
+  if (!tbody) return;
+  if (countEl) countEl.textContent = arr.length;
+  tbody.innerHTML = arr.length === 0
+    ? '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:18px">Sin registros</td></tr>'
+    : arr.map(v => `
+      <tr>
+        <td>${fmtDateShort(v.fecha)}</td>
+        <td>${v.comuna || '—'}</td>
+        <td>${v.lugar || '—'}</td>
+        <td>${v.personas || 0}</td>
+        <td><span class="cbadge ${v.urgencia === 'Alta' ? 'cbadge-alta' : v.urgencia === 'Media' ? 'cbadge-media' : ''}">${v.urgencia || '—'}</span></td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="openEditVisita(${v.id})">✏</button>
+          <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" title="Comentarios y archivos" onclick="openColaboracion(this.dataset.sid,'visitas',+this.dataset.id,this.dataset.titulo)" data-sid="${v.seremiId||''}" data-id="${v.id}" data-titulo="${(v.lugar||v.comuna||'Visita').replace(/"/g,'&quot;')}">💬</button>
+          <button class="btn btn-danger2" style="font-size:10px;padding:3px 8px" onclick="msDeleteRecord('visitas',${v.id})">🗑</button>
+        </td>
+      </tr>`).join('');
+}
+
+function msRenderContactos(arr) {
+  const tbody = document.getElementById('msContactosBody');
+  const countEl = document.getElementById('msContactosCount');
+  if (!tbody) return;
+  if (countEl) countEl.textContent = arr.length;
+  tbody.innerHTML = arr.length === 0
+    ? '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:18px">Sin registros</td></tr>'
+    : arr.map(c => `
+      <tr>
+        <td>${c.nombre || '—'}</td>
+        <td>${fmtDateShort(c.fecha)}</td>
+        <td>${c.lugar || '—'}</td>
+        <td>${c.personas || 0}</td>
+        <td>${c.tipo || '—'}</td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="openEditContacto(${c.id})">✏</button>
+          <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" title="Comentarios y archivos" onclick="openColaboracion(this.dataset.sid,'contactos',+this.dataset.id,this.dataset.titulo)" data-sid="${c.seremiId||''}" data-id="${c.id}" data-titulo="${(c.nombre||'Contacto').replace(/"/g,'&quot;')}">💬</button>
+          <button class="btn btn-danger2" style="font-size:10px;padding:3px 8px" onclick="msDeleteRecord('contactos',${c.id})">🗑</button>
+        </td>
+      </tr>`).join('');
+}
+
+function msRenderPrensa(arr) {
+  const tbody = document.getElementById('msPrensaBody');
+  const countEl = document.getElementById('msPrensaCount');
+  if (!tbody) return;
+  if (countEl) countEl.textContent = arr.length;
+  tbody.innerHTML = arr.length === 0
+    ? '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:18px">Sin registros</td></tr>'
+    : arr.map(p => `
+      <tr>
+        <td>${p.titular || '—'}</td>
+        <td>${p.medio || '—'}</td>
+        <td>${fmtDateShort(p.fecha)}</td>
+        <td><span style="color:${p.tono==='pos'?'var(--accent3)':p.tono==='neg'?'var(--danger)':'var(--text2)'}">${p.tono==='pos'?'✅ Positivo':p.tono==='neg'?'❌ Negativo':'⬜ Neutro'}</span></td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" title="Comentarios" onclick="openColaboracion(this.dataset.sid,'prensa',+this.dataset.id,this.dataset.titulo)" data-sid="${p.seremiId||''}" data-id="${p.id}" data-titulo="${(p.titular||'Prensa').replace(/"/g,'&quot;')}">💬</button>
+          <button class="btn btn-danger2" style="font-size:10px;padding:3px 8px" onclick="msDeleteRecord('prensa',${p.id})">🗑</button>
+        </td>
+      </tr>`).join('');
+}
+
+function msRenderProyectos(arr) {
+  const tbody = document.getElementById('msProyBody');
+  const countEl = document.getElementById('msProyCount');
+  if (!tbody) return;
+  if (countEl) countEl.textContent = arr.length;
+  tbody.innerHTML = arr.length === 0
+    ? '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:18px">Sin registros</td></tr>'
+    : arr.map(p => `<tr>
+        <td style="font-weight:600">${p.title || '—'}</td>
+        <td>${p.meta || '—'}</td>
+        <td><span class="cbadge">${p.estado || '—'}</span></td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" title="Comentarios" onclick="openColaboracion(this.dataset.sid,'proyectos',+this.dataset.id,this.dataset.titulo)" data-sid="${p.seremiId||''}" data-id="${p.id}" data-titulo="${(p.title||'Proyecto').replace(/"/g,'&quot;')}">💬</button>
+          <button class="btn btn-danger2" style="font-size:10px;padding:3px 8px" onclick="msDeleteRecord('proyectos',${p.id})">🗑</button>
+        </td>
+      </tr>`).join('');
+}
+
+function msRenderNudos(arr) {
+  const tbody = document.getElementById('msNudosBody');
+  const countEl = document.getElementById('msNudosCount');
+  if (!tbody) return;
+  if (countEl) countEl.textContent = arr.length;
+  tbody.innerHTML = arr.length === 0
+    ? '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:18px">Sin registros</td></tr>'
+    : arr.map(n => `<tr>
+        <td style="font-weight:600">⚠ ${n.title || '—'}</td>
+        <td style="font-size:11px;color:var(--text2)">${(n.desc||'').substring(0,80)}${(n.desc||'').length>80?'…':''}</td>
+        <td><span class="cbadge ${n.urgencia==='Alta'?'cbadge-alta':n.urgencia==='Media'?'cbadge-media':''}">${n.urgencia||'—'}</span></td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" title="Comentarios" onclick="openColaboracion(this.dataset.sid,'nudos',+this.dataset.id,this.dataset.titulo)" data-sid="${n.seremiId||''}" data-id="${n.id}" data-titulo="${(n.title||'Nudo Crítico').replace(/"/g,'&quot;')}">💬</button>
+          <button class="btn btn-danger2" style="font-size:10px;padding:3px 8px" onclick="msDeleteRecord('nudos',${n.id})">🗑</button>
+        </td>
+      </tr>`).join('');
+}
+
+function msRenderTemas(arr) {
+  const tbody = document.getElementById('msTemasBody');
+  const countEl = document.getElementById('msTemasCount');
+  if (!tbody) return;
+  if (countEl) countEl.textContent = arr.length;
+  tbody.innerHTML = arr.length === 0
+    ? '<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:18px">Sin registros</td></tr>'
+    : arr.map(t => `<tr>
+        <td style="font-weight:600">💡 ${t.tema || '—'}</td>
+        <td><span class="cbadge">${t.prioridad||'—'}</span></td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" title="Comentarios" onclick="openColaboracion(this.dataset.sid,'temas',+this.dataset.id,this.dataset.titulo)" data-sid="${t.seremiId||''}" data-id="${t.id}" data-titulo="${(t.tema||'Tema').replace(/"/g,'&quot;')}">💬</button>
+          <button class="btn btn-danger2" style="font-size:10px;padding:3px 8px" onclick="msDeleteRecord('temas',${t.id})">🗑</button>
+        </td>
+      </tr>`).join('');
+}
+
+function msRenderAgenda(arr) {
+  const tbody = document.getElementById('msAgendaBody');
+  const countEl = document.getElementById('msAgendaCount');
+  if (!tbody) return;
+  if (countEl) countEl.textContent = arr.length;
+  tbody.innerHTML = arr.length === 0
+    ? '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:18px">Sin registros</td></tr>'
+    : arr.map(a => `<tr>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${fmtDateShort(a.fecha)}</td>
+        <td>${a.texto || '—'}</td>
+        <td><span class="cbadge">${a.cat||'—'}</span></td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" title="Comentarios" onclick="openColaboracion(this.dataset.sid,'agenda',+this.dataset.id,this.dataset.titulo)" data-sid="${a.seremiId||''}" data-id="${a.id}" data-titulo="${(a.texto||'Evento').replace(/"/g,'&quot;')}">💬</button>
+          <button class="btn btn-danger2" style="font-size:10px;padding:3px 8px" onclick="msDeleteRecord('agenda',${a.id})">🗑</button>
+        </td>
+      </tr>`).join('');
+}
+
+function msAddRecord(tipo) {
+  selectType(tipo, null);
+  document.querySelectorAll('.type-card').forEach(c => {
+    if (c.dataset && c.dataset.type === tipo) c.classList.add('active');
+    else c.classList.remove('active');
+  });
+  document.getElementById('modalRecord').classList.add('open');
+}
+
+async function msDeleteRecord(tabla, id) {
+  if (!confirm('¿Eliminar este registro?')) return;
+  try {
+    const r = await authFetch(`/api/${tabla}/${id}`, { method: 'DELETE' });
+    if (r.ok) {
+      showToast('Registro eliminado', '#e85454');
+      loadMiSeremi();
+      await loadSeremis();
+      applyPeriodFilter();
+    } else {
+      showToast('Error al eliminar', '#e85454');
+    }
+  } catch (err) {
+    showToast('Error al eliminar', '#e85454');
+  }
+}
+
+// ─── Edit Visita ────────────────────────────────────
+async function openEditVisita(id) {
+  try {
+    const r = await authFetch(`/api/visitas/${id}`);
+    if (!r.ok) return showToast('No se pudo cargar', '#e85454');
+    const v = await r.json();
+    document.getElementById('evId').value = v.id;
+    document.getElementById('evNombre').value = v.comuna || '';
+    document.getElementById('evFecha').value = v.fecha || '';
+    document.getElementById('evTipo').value = v.tipo || 'Visita';
+    document.getElementById('evUrgencia').value = v.urgencia || 'Alta';
+    document.getElementById('evNotas').value = v.descripcion || '';
+    document.getElementById('modalEditVisita').classList.add('open');
+  } catch (err) { showToast('Error', '#e85454'); }
+}
+
+async function saveEditVisita() {
+  const id = document.getElementById('evId').value;
+  const payload = {
+    comuna: document.getElementById('evNombre').value.trim(),
+    fecha: document.getElementById('evFecha').value,
+    tipo: document.getElementById('evTipo').value,
+    urgencia: document.getElementById('evUrgencia').value,
+    descripcion: document.getElementById('evNotas').value.trim()
+  };
+  try {
+    const r = await authFetch(`/api/visitas/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+    if (r.ok) {
+      closeModal('modalEditVisita');
+      showToast('✓ Visita actualizada', '#2ec4a5');
+      loadMiSeremi();
+      await loadSeremis();
+      applyPeriodFilter();
+    } else { showToast('Error al guardar', '#e85454'); }
+  } catch (err) { showToast('Error', '#e85454'); }
+}
+
+// ─── Edit Contacto ───────────────────────────────────
+async function openEditContacto(id) {
+  try {
+    const r = await authFetch(`/api/contactos/${id}`);
+    if (!r.ok) return showToast('No se pudo cargar', '#e85454');
+    const c = await r.json();
+    document.getElementById('ecId').value = c.id;
+    document.getElementById('ecNombre').value = c.nombre || '';
+    document.getElementById('ecFecha').value = c.fecha || '';
+    document.getElementById('ecLugar').value = c.lugar || '';
+    document.getElementById('ecPersonas').value = c.personas || '';
+    document.getElementById('ecTipo').value = c.tipo || 'Reunión';
+    document.getElementById('ecNotas').value = c.descripcion || '';
+    document.getElementById('modalEditContacto').classList.add('open');
+  } catch (err) { showToast('Error', '#e85454'); }
+}
+
+async function saveEditContacto() {
+  const id = document.getElementById('ecId').value;
+  const payload = {
+    nombre: document.getElementById('ecNombre').value.trim(),
+    fecha: document.getElementById('ecFecha').value,
+    lugar: document.getElementById('ecLugar').value.trim(),
+    personas: parseInt(document.getElementById('ecPersonas').value) || 0,
+    tipo: document.getElementById('ecTipo').value,
+    descripcion: document.getElementById('ecNotas').value.trim()
+  };
+  try {
+    const r = await authFetch(`/api/contactos/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+    if (r.ok) {
+      closeModal('modalEditContacto');
+      showToast('✓ Contacto actualizado', '#2ec4a5');
+      loadMiSeremi();
+      await loadSeremis();
+      applyPeriodFilter();
+    } else { showToast('Error al guardar', '#e85454'); }
+  } catch (err) { showToast('Error', '#e85454'); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  KPI INDICATORS — Mejora 12
+// ═══════════════════════════════════════════════════════
+let _kpiData = [];
+
+async function loadKPIs() {
+  if (!currentUser) return;
+  const sid = currentUser.rol === 'seremi' ? currentUser.seremiId : (document.getElementById('kpiSeremiFilter')?.value || '');
+  const url = '/api/kpis' + (sid ? `?seremiId=${sid}` : '');
+  // Show admin filter
+  const adminFilter = document.getElementById('kpiAdminFilter');
+  if (adminFilter && currentUser.rol === 'admin') {
+    adminFilter.style.display = 'block';
+    const sel = document.getElementById('kpiSeremiFilter');
+    if (sel.options.length <= 1) {
+      SD.forEach(s => sel.innerHTML += `<option value="${s.id}">${s.nombre}</option>`);
+    }
+  }
+  try {
+    const r = await authFetch(url);
+    if (!r.ok) return;
+    _kpiData = await r.json();
+    renderKPIs(_kpiData);
+  } catch (err) { console.error('Error KPIs:', err); }
+}
+
+function kpiSemaforo(meta, real) {
+  if (!meta || meta <= 0) return '⚫';
+  const pct = (real / meta) * 100;
+  if (pct >= 90) return '🟢';
+  if (pct >= 60) return '🟡';
+  return '🔴';
+}
+
+function kpiLabel(meta, real) {
+  if (!meta || meta <= 0) return '—';
+  return Math.round((real / meta) * 100) + '%';
+}
+
+function renderKPIs(data) {
+  const tbody = document.getElementById('kpiBody');
+  if (!tbody) return;
+
+  // Summary row
+  const summaryEl = document.getElementById('kpiSummaryRow');
+  if (summaryEl) {
+    const total = data.length;
+    const verdes = data.filter(k => kpiSemaforo(k.meta, k.real) === '🟢').length;
+    const amarillos = data.filter(k => kpiSemaforo(k.meta, k.real) === '🟡').length;
+    const rojos = data.filter(k => kpiSemaforo(k.meta, k.real) === '🔴').length;
+    summaryEl.innerHTML = [
+      { label: 'Total indicadores', val: total, color: 'var(--accent2)' },
+      { label: '🟢 En meta', val: verdes, color: '#2ec4a5' },
+      { label: '🟡 En riesgo', val: amarillos, color: '#e8a03a' },
+      { label: '🔴 Bajo meta', val: rojos, color: '#e85454' }
+    ].map(k => `
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;min-width:120px">
+        <div style="font-size:22px;font-weight:700;color:${k.color}">${k.val}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">${k.label}</div>
+      </div>`).join('');
+  }
+
+  tbody.innerHTML = data.length === 0
+    ? '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:22px">Sin indicadores KPI. Haz clic en "+ Nuevo KPI" para agregar.</td></tr>'
+    : data.map(k => `
+      <tr>
+        <td style="font-weight:600">${k.nombre}</td>
+        <td style="font-family:'JetBrains Mono',monospace">${k.meta} ${k.unidad || ''}</td>
+        <td style="font-family:'JetBrains Mono',monospace">${k.real} ${k.unidad || ''}</td>
+        <td style="font-weight:700;color:${kpiLabel(k.meta,k.real)==='—'?'var(--text3)':parseInt(kpiLabel(k.meta,k.real))>=90?'#2ec4a5':parseInt(kpiLabel(k.meta,k.real))>=60?'#e8a03a':'#e85454'}">${kpiLabel(k.meta, k.real)}</td>
+        <td style="font-size:18px">${kpiSemaforo(k.meta, k.real)}</td>
+        <td>${k.periodo || '—'}</td>
+        <td>${k.unidad || '—'}</td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="openKPIModal(${k.id})">✏</button>
+          <button class="btn btn-danger2" style="font-size:10px;padding:3px 8px" onclick="deleteKPI(${k.id})">🗑</button>
+        </td>
+      </tr>`).join('');
+}
+
+// Preload existing or open fresh
+async function openKPIModal(id) {
+  const modal = document.getElementById('modalKPI');
+  const title = document.getElementById('modalKPITitle');
+  const grupoSeremi = document.getElementById('kpiSeremiGrupo');
+  const selSeremi = document.getElementById('kpiSeremiSelector');
+
+  // Mostrar selector de SEREMI solo para admin en modo creación
+  const esAdmin = currentUser?.rol === 'admin';
+  grupoSeremi.style.display = (esAdmin && !id) ? 'block' : 'none';
+
+  // Poblar opciones SEREMI para admin
+  if (esAdmin && !id && SD.length) {
+    selSeremi.innerHTML = '<option value="">— Selecciona SEREMI —</option>'
+      + SD.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+  }
+
+  if (id) {
+    const k = _kpiData.find(x => x.id === id);
+    if (!k) return;
+    title.textContent = 'Editar KPI';
+    document.getElementById('kpiId').value = k.id;
+    document.getElementById('kpiNombre').value = k.nombre;
+    document.getElementById('kpiMeta').value = k.meta;
+    document.getElementById('kpiReal').value = k.real;
+    document.getElementById('kpiUnidad').value = k.unidad || '';
+    document.getElementById('kpiPeriodo').value = k.periodo || '';
+    document.getElementById('kpiDesc').value = k.descripcion || '';
+  } else {
+    title.textContent = 'Nuevo Indicador KPI';
+    ['kpiId','kpiNombre','kpiMeta','kpiReal','kpiUnidad','kpiPeriodo','kpiDesc'].forEach(fid => document.getElementById(fid).value = '');
+    if (selSeremi) selSeremi.value = '';
+  }
+  modal.classList.add('open');
+}
+
+async function saveKPI() {
+  const nombre = document.getElementById('kpiNombre').value.trim();
+  const meta = parseFloat(document.getElementById('kpiMeta').value);
+  if (!nombre || isNaN(meta)) { alert('Nombre y meta son obligatorios'); return; }
+  const id = document.getElementById('kpiId').value;
+  let seremiId;
+  if (currentUser.rol === 'seremi') {
+    seremiId = currentUser.seremiId;
+  } else if (id) {
+    // Editando: mantener el seremiId original
+    seremiId = _kpiData.find(x => x.id == id)?.seremiId || '';
+  } else {
+    // Admin creando nuevo: leer selector del modal
+    seremiId = document.getElementById('kpiSeremiSelector')?.value || '';
+  }
+  if (!seremiId) { alert('Selecciona una SEREMI destinataria'); return; }
+  const payload = {
+    seremiId,
+    nombre,
+    meta,
+    real: parseFloat(document.getElementById('kpiReal').value) || 0,
+    unidad: document.getElementById('kpiUnidad').value.trim(),
+    periodo: document.getElementById('kpiPeriodo').value.trim(),
+    descripcion: document.getElementById('kpiDesc').value.trim()
+  };
+  try {
+    const url = id ? `/api/kpis/${id}` : '/api/kpis';
+    const method = id ? 'PUT' : 'POST';
+    const r = await authFetch(url, { method, body: JSON.stringify(payload) });
+    if (r.ok) {
+      closeModal('modalKPI');
+      showToast('✓ KPI guardado', '#2ec4a5');
+      loadKPIs();
+    } else { showToast('Error al guardar KPI', '#e85454'); }
+  } catch (err) { showToast('Error', '#e85454'); }
+}
+
+async function deleteKPI(id) {
+  if (!confirm('¿Eliminar este indicador KPI?')) return;
+  try {
+    const r = await authFetch(`/api/kpis/${id}`, { method: 'DELETE' });
+    if (r.ok) { showToast('KPI eliminado', '#e85454'); loadKPIs(); }
+    else { showToast('Error al eliminar', '#e85454'); }
+  } catch (err) { showToast('Error', '#e85454'); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  COMENTARIOS — Mejora 7
+// ═══════════════════════════════════════════════════════
+async function loadComentarios(seremiId, tabla, registroId, containerId) {
+  try {
+    const r = await authFetch(`/api/comentarios?seremiId=${seremiId}&tabla=${tabla}&registroId=${registroId}`);
+    if (!r.ok) return;
+    const data = await r.json();
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = data.length === 0
+      ? '<div style="color:var(--text3);font-size:11px;padding:8px 0">Sin comentarios todavía.</div>'
+      : data.map(c => `
+          <div style="padding:8px 0;border-bottom:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:11px;font-weight:600;color:var(--text2)">${c.autorNombre}</span>
+              <span style="font-size:10px;color:var(--text3)">${fmtDateShort(c.fecha?.slice(0,10))}</span>
+            </div>
+            <div style="font-size:12px;color:var(--text);line-height:1.5">${c.texto}</div>
+            ${currentUser?.rol==='admin'||currentUser?.id===c.autorId?`<button onclick="deleteComentario(${c.id},'${seremiId}','${tabla}','${registroId}','${containerId}')" style="font-size:10px;background:none;border:none;color:var(--danger);cursor:pointer;margin-top:4px">Eliminar</button>`:''}
+          </div>`).join('');
+  } catch (err) { console.error('Error comentarios:', err); }
+}
+
+async function addComentario(seremiId, tabla, registroId, inputId, containerId) {
+  const input = document.getElementById(inputId);
+  const texto = input?.value.trim();
+  if (!texto) return;
+  try {
+    const r = await authFetch('/api/comentarios', {
+      method: 'POST',
+      body: JSON.stringify({ seremiId, tabla, registroId, texto })
+    });
+    if (r.ok) {
+      input.value = '';
+      loadComentarios(seremiId, tabla, registroId, containerId);
+    } else { showToast('Error al agregar comentario', '#e85454'); }
+  } catch (err) { showToast('Error', '#e85454'); }
+}
+
+async function deleteComentario(id, seremiId, tabla, registroId, containerId) {
+  if (!confirm('¿Eliminar comentario?')) return;
+  try {
+    const r = await authFetch(`/api/comentarios/${id}`, { method: 'DELETE' });
+    if (r.ok) loadComentarios(seremiId, tabla, registroId, containerId);
+    else showToast('Error al eliminar', '#e85454');
+  } catch (err) { showToast('Error', '#e85454'); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  ARCHIVOS / DOCUMENTOS — Mejora 3
+// ═══════════════════════════════════════════════════════
+async function uploadArchivo(seremiId, tabla, registroId, inputId, listId) {
+  const input = document.getElementById(inputId);
+  if (!input?.files?.length) { showToast('Selecciona un archivo', '#e8a03a'); return; }
+  const formData = new FormData();
+  formData.append('archivo', input.files[0]);
+  formData.append('seremiId', seremiId);
+  formData.append('tabla', tabla);
+  formData.append('registroId', registroId);
+  try {
+    const r = await authFetch('/api/archivos', { method: 'POST', body: formData });
+    if (r.ok) {
+      input.value = '';
+      showToast('✓ Archivo subido', '#2ec4a5');
+      loadArchivos(seremiId, tabla, registroId, listId);
+    } else {
+      const err = await r.json().catch(() => ({}));
+      showToast('Error: ' + (err.error || 'al subir archivo'), '#e85454');
+    }
+  } catch (err) { showToast('Error al subir', '#e85454'); }
+}
+
+async function loadArchivos(seremiId, tabla, registroId, listId) {
+  try {
+    const r = await authFetch(`/api/archivos?seremiId=${seremiId}&tabla=${tabla}&registroId=${registroId}`);
+    if (!r.ok) return;
+    const data = await r.json();
+    const el = document.getElementById(listId);
+    if (!el) return;
+    el.innerHTML = data.length === 0
+      ? '<div style="color:var(--text3);font-size:11px;padding:8px 0">Sin archivos adjuntos.</div>'
+      : data.map(f => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+            <div>
+              <a href="/uploads/${seremiId}/${f.nombreDisco}" download="${f.nombre}" style="color:var(--accent2);font-size:12px;text-decoration:none">📎 ${f.nombre}</a>
+              <span style="font-size:10px;color:var(--text3);margin-left:8px">${Math.round(f.tamano/1024)} KB</span>
+            </div>
+            <button onclick="deleteArchivo(${f.id},'${seremiId}','${tabla}','${registroId}','${listId}')" style="font-size:10px;background:none;border:none;color:var(--danger);cursor:pointer">Eliminar</button>
+          </div>`).join('');
+  } catch (err) { console.error('Error archivos:', err); }
+}
+
+async function deleteArchivo(id, seremiId, tabla, registroId, listId) {
+  if (!confirm('¿Eliminar archivo?')) return;
+  try {
+    const r = await authFetch(`/api/archivos/${id}`, { method: 'DELETE' });
+    if (r.ok) loadArchivos(seremiId, tabla, registroId, listId);
+    else showToast('Error al eliminar', '#e85454');
+  } catch (err) { showToast('Error', '#e85454'); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  MÓDULO COLABORACIÓN GENÉRICO
+//  openColaboracion(tabla, id, titulo) → abre modal con
+//  3 pestañas: Comentarios · Archivos · Historial
+// ═══════════════════════════════════════════════════════
+let _colabTabla = '', _colabId = null, _colabSid = '';
+
+function openColaboracion(sid, tabla, id, titulo) {
+  _colabTabla = tabla;
+  _colabId = id;
+  _colabSid = sid || currentUser?.seremiId || '';
+  document.getElementById('colabTitle').textContent = titulo || 'Colaboración';
+  const tipoLabel = { visitas:'Visita', contactos:'Contacto', prensa:'Prensa',
+    proyectos:'Proyecto', nudos:'Nudo Crítico', temas:'Tema', agenda:'Agenda',
+    contrataciones:'Contratación' }[tabla] || tabla;
+  document.getElementById('colabSub').textContent = `${tipoLabel} #${id}`;
+  document.getElementById('colabComInput').value = '';
+  colabSwitchTab('comentarios');
+  document.getElementById('modalColab').classList.add('open');
+}
+
+function colabSwitchTab(tab) {
+  const tabs = ['comentarios','archivos','historial'];
+  tabs.forEach(t => {
+    const btn = document.getElementById('colabTab' + t.charAt(0).toUpperCase() + t.slice(1));
+    const panel = document.getElementById('colabPanel' + t.charAt(0).toUpperCase() + t.slice(1));
+    const active = t === tab;
+    if (btn) {
+      btn.style.borderBottomColor = active ? 'var(--accent)' : 'transparent';
+      btn.style.color = active ? 'var(--accent)' : 'var(--text2)';
+    }
+    if (panel) panel.style.display = active ? (t === 'archivos' ? 'flex' : t === 'comentarios' ? 'flex' : 'block') : 'none';
+  });
+  if (tab === 'comentarios') colabLoadComentarios();
+  else if (tab === 'archivos') colabLoadArchivos();
+  else if (tab === 'historial') colabLoadHistorial();
+}
+
+async function colabLoadComentarios() {
+  const el = document.getElementById('colabComentariosList');
+  if (!el) return;
+  el.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;padding:20px">Cargando…</div>';
+  try {
+    const r = await authFetch(`/api/comentarios?seremiId=${_colabSid}&tabla=${_colabTabla}&registroId=${_colabId}`);
+    const arr = r.ok ? await r.json() : [];
+    if (arr.length === 0) {
+      el.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;padding:30px">Sin comentarios aún. ¡Sé el primero!</div>';
+      return;
+    }
+    el.innerHTML = arr.map(c => `
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-weight:600;font-size:11px;color:var(--accent)">
+            👤 ${c.autorNombre || 'Usuario'}
+          </span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="font-size:10px;color:var(--text3)">${fmtDateShort(c.fecha)}</span>
+            <button onclick="colabDeleteComment(${c.id})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:0;line-height:1" title="Eliminar">✕</button>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap">${escHtml(c.texto||'')}</div>
+      </div>`).join('');
+    // Auto-scroll al fondo
+    el.scrollTop = el.scrollHeight;
+  } catch (e) { el.innerHTML = '<div style="color:var(--danger);font-size:11px;padding:20px">Error al cargar</div>'; }
+}
+
+async function colabAddComment() {
+  const inp = document.getElementById('colabComInput');
+  const texto = inp?.value?.trim();
+  if (!texto) return;
+  try {
+    const r = await authFetch('/api/comentarios', {
+      method: 'POST',
+      body: JSON.stringify({
+        seremiId: _colabSid,
+        tabla: _colabTabla,
+        registroId: _colabId,
+        texto,
+        autor: currentUser?.nombre || currentUser?.username || 'Usuario'
+      })
+    });
+    if (r.ok) { inp.value = ''; colabLoadComentarios(); }
+    else showToast('Error al enviar comentario', '#e85454');
+  } catch (e) { showToast('Error', '#e85454'); }
+}
+
+async function colabDeleteComment(id) {
+  if (!confirm('¿Eliminar comentario?')) return;
+  try {
+    const r = await authFetch(`/api/comentarios/${id}`, { method: 'DELETE' });
+    if (r.ok) colabLoadComentarios();
+    else showToast('Error al eliminar', '#e85454');
+  } catch (e) { showToast('Error', '#e85454'); }
+}
+
+async function colabLoadArchivos() {
+  const el = document.getElementById('colabArchivosList');
+  if (!el) return;
+  el.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;padding:20px">Cargando…</div>';
+  try {
+    const r = await authFetch(`/api/archivos?seremiId=${_colabSid}&tabla=${_colabTabla}&registroId=${_colabId}`);
+    const arr = r.ok ? await r.json() : [];
+    if (arr.length === 0) {
+      el.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;padding:30px">Sin archivos. Usa el botón Subir para adjuntar documentos.</div>';
+      return;
+    }
+    el.innerHTML = arr.map(a => `
+      <div style="display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:10px 14px">
+        <span style="font-size:20px">${fileIcon(a.nombre||'')}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${a.nombre||'Archivo'}</div>
+          <div style="font-size:10px;color:var(--text3)">${a.subidoPor||''} · ${fmtDateShort(a.subidoEn||'')}</div>
+        </div>
+        <a href="${a.ruta}" target="_blank" class="btn btn-ghost" style="font-size:11px;padding:4px 10px;text-decoration:none">⬇ Ver</a>
+        <button onclick="colabDeleteArchivo(${a.id})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:14px;padding:0" title="Eliminar">🗑</button>
+      </div>`).join('');
+  } catch (e) { el.innerHTML = '<div style="color:var(--danger);font-size:11px;padding:20px">Error al cargar</div>'; }
+}
+
+async function colabUpload() {
+  const inp = document.getElementById('colabFileInput');
+  if (!inp?.files?.length) { showToast('Selecciona un archivo', '#e85454'); return; }
+  const fd = new FormData();
+  fd.append('archivo', inp.files[0]);
+  fd.append('seremiId', _colabSid);
+  fd.append('tabla', _colabTabla);
+  fd.append('registroId', _colabId);
+  fd.append('subidoPor', currentUser?.nombre || currentUser?.username || 'Usuario');
+  try {
+    const r = await authFetch('/api/archivos', { method: 'POST', body: fd });
+    if (r.ok) { showToast('✓ Archivo subido', '#2ec4a5'); inp.value=''; colabLoadArchivos(); }
+    else showToast('Error al subir archivo', '#e85454');
+  } catch (e) { showToast('Error al subir archivo', '#e85454'); }
+}
+
+async function colabDeleteArchivo(id) {
+  if (!confirm('¿Eliminar archivo?')) return;
+  try {
+    const r = await authFetch(`/api/archivos/${id}`, { method: 'DELETE' });
+    if (r.ok) colabLoadArchivos();
+    else showToast('Error al eliminar', '#e85454');
+  } catch (e) { showToast('Error', '#e85454'); }
+}
+
+async function colabLoadHistorial() {
+  const el = document.getElementById('colabHistorialList');
+  if (!el) return;
+  el.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;padding:20px">Cargando…</div>';
+  try {
+    const r = await authFetch(`/api/audit/${_colabTabla}/${_colabId}`);
+    const arr = r.ok ? await r.json() : [];
+    if (arr.length === 0) {
+      el.innerHTML = '<div style="color:var(--text3);font-size:11px;text-align:center;padding:30px">Sin historial de cambios para este registro.</div>';
+      return;
+    }
+    const accionIcon = { 'INSERT':'🟢', 'UPDATE':'✏️', 'DELETE':'🔴', 'VB':'✅' };
+    el.innerHTML = arr.map(h => `
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:18px;flex-shrink:0">${accionIcon[h.accion]||'📝'}</span>
+        <div style="flex:1">
+          <div style="font-size:11px;font-weight:600;color:var(--text)">${h.accion} — <span style="color:var(--accent)">${h.userName||'—'}</span></div>
+          ${h.detalles ? `<div style="font-size:10px;color:var(--text2);margin-top:2px;font-family:'JetBrains Mono',monospace;white-space:pre-wrap">${escHtml(h.detalles)}</div>` : ''}
+        </div>
+        <div style="font-size:10px;color:var(--text3);white-space:nowrap">${fmtDateShort(h.fecha)}</div>
+      </div>`).join('');
+  } catch (e) { el.innerHTML = '<div style="color:var(--danger);font-size:11px;padding:20px">Error al cargar historial</div>'; }
+}
+
+function fileIcon(nombre) {
+  const ext = (nombre.split('.').pop()||'').toLowerCase();
+  if (['jpg','jpeg','png','gif','webp'].includes(ext)) return '🖼️';
+  if (['pdf'].includes(ext)) return '📕';
+  if (['doc','docx'].includes(ext)) return '📝';
+  if (['xls','xlsx'].includes(ext)) return '📊';
+  if (['zip','rar','7z'].includes(ext)) return '📦';
+  return '📄';
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════════════════
+//  VISITAS & CONTACTOS — Endpoints list for saveRecord
+// ═══════════════════════════════════════════════════════
+// saveRecord already calls authFetch for /api/visitas, /api/contactos, etc.
+// After saving, reload Mi SEREMI if currently on that tab.
+const _origSaveRecord = saveRecord;
 </script>
 </body>
 </html>

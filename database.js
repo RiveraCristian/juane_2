@@ -123,6 +123,64 @@ function initDB() {
       \`creadoPor\` TEXT,
       \`creadoEn\`  TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS \`archivos\` (
+      \`id\`           INTEGER PRIMARY KEY AUTOINCREMENT,
+      \`seremiId\`     TEXT NOT NULL,
+      \`tabla\`        TEXT,
+      \`registroId\`   INTEGER,
+      \`nombre\`       TEXT NOT NULL,
+      \`nombreDisco\`  TEXT NOT NULL,
+      \`ruta\`         TEXT NOT NULL,
+      \`tipo\`         TEXT,
+      \`tamano\`       INTEGER,
+      \`subidoPor\`    TEXT,
+      \`subidoEn\`     TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS \`comentarios\` (
+      \`id\`          INTEGER PRIMARY KEY AUTOINCREMENT,
+      \`seremiId\`    TEXT NOT NULL,
+      \`tabla\`       TEXT NOT NULL,
+      \`registroId\`  INTEGER NOT NULL,
+      \`texto\`       TEXT NOT NULL,
+      \`autorId\`     TEXT,
+      \`autorNombre\` TEXT,
+      \`fecha\`       TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS \`kpi_indicadores\` (
+      \`id\`          INTEGER PRIMARY KEY AUTOINCREMENT,
+      \`seremiId\`    TEXT NOT NULL,
+      \`nombre\`      TEXT NOT NULL,
+      \`meta\`        REAL DEFAULT 0,
+      \`real\`        REAL DEFAULT 0,
+      \`unidad\`      TEXT,
+      \`periodo\`     TEXT,
+      \`descripcion\` TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS \`audit_log\` (
+      \`id\`         INTEGER PRIMARY KEY AUTOINCREMENT,
+      \`userId\`     TEXT,
+      \`userName\`   TEXT,
+      \`accion\`     TEXT NOT NULL,
+      \`tabla\`      TEXT,
+      \`registroId\` TEXT,
+      \`detalles\`   TEXT,
+      \`fecha\`      TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_visitas_seremi    ON visitas(seremiId);
+    CREATE INDEX IF NOT EXISTS idx_visitas_fecha     ON visitas(fecha);
+    CREATE INDEX IF NOT EXISTS idx_contactos_seremi  ON contactos(seremiId);
+    CREATE INDEX IF NOT EXISTS idx_prensa_seremi     ON prensa(seremiId);
+    CREATE INDEX IF NOT EXISTS idx_prensa_fecha      ON prensa(fecha);
+    CREATE INDEX IF NOT EXISTS idx_contrat_seremi    ON contrataciones(seremiId);
+    CREATE INDEX IF NOT EXISTS idx_contrat_estado    ON contrataciones(estado);
+    CREATE INDEX IF NOT EXISTS idx_comentarios_ref   ON comentarios(tabla, registroId);
+    CREATE INDEX IF NOT EXISTS idx_archivos_ref      ON archivos(tabla, registroId);
+    CREATE INDEX IF NOT EXISTS idx_kpi_seremi        ON kpi_indicadores(seremiId);
   `);
 
   /* ── Helpers ────────────────────────────────────────────── */
